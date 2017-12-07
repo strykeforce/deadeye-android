@@ -2,6 +2,8 @@ package org.team2767.deadeye.di;
 
 import android.content.Context;
 
+import org.team2767.deadeye.DeadeyeView;
+
 import javax.inject.Singleton;
 
 import dagger.Component;
@@ -17,4 +19,6 @@ import dagger.Component;
 public interface SingletonComponent {
 
     Context appContext();
+
+    DeadeyeView deadeyeView();
 }

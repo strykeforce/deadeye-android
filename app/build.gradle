@@ -33,6 +33,9 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
 
+    compileOnly 'com.google.auto.factory:auto-factory:1.0-beta5'
+    annotationProcessor 'com.google.auto.factory:auto-factory:1.0-beta5'
+
     // https://google.github.io/dagger/
     annotationProcessor 'com.google.dagger:dagger-compiler:2.13'
     implementation 'com.google.dagger:dagger:2.13'
