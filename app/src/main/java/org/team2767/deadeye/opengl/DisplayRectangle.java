@@ -1,9 +1,14 @@
 package org.team2767.deadeye.opengl;
 
+import javax.inject.Inject;
+
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
 import static android.opengl.GLES20.glDrawArrays;
 
-public class TextureSurface {
+/**
+ * OpenGL rectangle with preview texture that is displayed by {@code DeadeyeView}.
+ */
+public class DisplayRectangle {
 
     private final static int POSITION_COMPONENT_COUNT = 2;
     private final static int TEXTURE_COORDS_COMPONENT_COUNT = 2;
@@ -25,7 +30,8 @@ public class TextureSurface {
 
     private final VertexArray vertexArray;
 
-    public TextureSurface() {
+    @Inject
+    public DisplayRectangle() {
         vertexArray = new VertexArray(VERTEX_DATA);
     }
 
