@@ -2,7 +2,10 @@ package org.team2767.deadeye.di;
 
 import android.content.Context;
 
+import org.team2767.deadeye.DeadeyeRendererFactory;
 import org.team2767.deadeye.DeadeyeView;
+import org.team2767.deadeye.opengl.CameraShaderProgram;
+import org.team2767.deadeye.opengl.TextureShaderProgram;
 
 import javax.inject.Singleton;
 
@@ -20,5 +23,9 @@ public interface SingletonComponent {
 
     Context appContext();
 
-    DeadeyeView deadeyeView();
+    TextureShaderProgram textureShaderProgram();
+
+    CameraShaderProgram cameraShaderProgram();
+
+    DeadeyeRendererFactory deadeyeRendererFactory();
 }

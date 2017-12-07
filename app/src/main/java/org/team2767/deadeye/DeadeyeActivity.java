@@ -1,12 +1,9 @@
 package org.team2767.deadeye;
 
-import android.opengl.GLSurfaceView;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
-
-import org.team2767.deadeye.di.Injector;
 
 public class DeadeyeActivity extends AppCompatActivity {
 
@@ -17,18 +14,13 @@ public class DeadeyeActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
     }
 
-    private GLSurfaceView deadeyeView;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        deadeyeView = Injector.get().deadeyeView();
         super.onCreate(savedInstanceState);
-        setContentView(deadeyeView);
+        setContentView(R.layout.activity_deadeye);
 
-        // Example of a call to a native method
-//        TextView tv = (TextView) findViewById(R.id.sample_text);
-//        tv.setText(stringFromJNI());
-        Log.d(TAG, stringFromJNI());
+        TextView tv = (TextView) findViewById(R.id.sample_text);
+        tv.setText(stringFromJNI());
         Log.d(TAG, "onCreate() finished");
     }
 

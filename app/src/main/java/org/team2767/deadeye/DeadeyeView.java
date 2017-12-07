@@ -2,7 +2,10 @@ package org.team2767.deadeye;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
+import android.util.AttributeSet;
 import android.util.Log;
+
+import org.team2767.deadeye.di.Injector;
 
 import javax.inject.Inject;
 
@@ -13,20 +16,24 @@ public class DeadeyeView extends GLSurfaceView {
 
     private final static String TAG = "DeadeyeView";
 
-    private final DeadeyeRenderer renderer;
+//    private final DeadeyeRenderer renderer;
 
-    @Inject
-    public DeadeyeView(Context context, DeadeyeRendererFactory rendererFactory) {
-        super(context);
+    public DeadeyeView(Context context, AttributeSet attrs) {
+        super(context, attrs);
 
-        // inject and use a factory to break the dependency-injection cycle with renderer
-        this.renderer = rendererFactory.create(this);
+//        this.renderer = Injector.get().deadeyeRendererFactory().create(this);
 
         setEGLContextClientVersion(2);
 
-        setRenderer(renderer);
+        setRenderer(Injector.get().deadeyeRendererFactory().create(this));
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         Log.d(TAG, "constructor finished");
+
+    }
+
+    public DeadeyeView(Context context) {
+        this(context, null);
+
     }
 }
