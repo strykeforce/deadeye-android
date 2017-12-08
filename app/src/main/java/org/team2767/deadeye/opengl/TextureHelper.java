@@ -3,9 +3,10 @@ package org.team2767.deadeye.opengl;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
+import android.support.annotation.NonNull;
+import android.support.annotation.RawRes;
 
-import org.team2767.deadeye.LoggerConfig;
+import timber.log.Timber;
 
 import static android.opengl.GLES11Ext.GL_TEXTURE_EXTERNAL_OES;
 import static android.opengl.GLES20.GL_CLAMP_TO_EDGE;
@@ -28,7 +29,6 @@ import static android.opengl.GLES20.glTexParameteri;
 import static android.opengl.GLUtils.texImage2D;
 
 public class TextureHelper {
-    private static final String TAG = "TextureHelper";
 
     /**
      * Loads a texture from a resource ID, returning the OpenGL ID for that texture.
@@ -38,7 +38,8 @@ public class TextureHelper {
      * @param resourceId the resource id
      * @return a handle to the loaded texture
      */
-    public static int loadTexture(Context context, int resourceId) {
+    @SuppressWarnings("unused")
+    public static int loadTexture(@NonNull Context context, @RawRes int resourceId) {
         final int[] textureObjectIds = generateTextureObjectIds();
         if (textureObjectIds == null) {
             return 0;
@@ -52,9 +53,7 @@ public class TextureHelper {
                 context.getResources(), resourceId, options);
 
         if (bitmap == null) {
-            if (LoggerConfig.ON) {
-                Log.w(TAG, "Resource ID " + resourceId + " could not be decoded.");
-            }
+            Timber.w("Resource ID %d could not be decoded.", resourceId);
 
             glDeleteTextures(1, textureObjectIds, 0);
 
@@ -122,14 +121,12 @@ public class TextureHelper {
         return textureObjectIds[0];
     }
 
-    public static int[] generateTextureObjectIds() {
+    private static int[] generateTextureObjectIds() {
         final int[] textureObjectIds = new int[1];
         glGenTextures(1, textureObjectIds, 0);
 
         if (textureObjectIds[0] == 0) {
-            if (LoggerConfig.ON) {
-                Log.e(TAG, "Could not generate a new OpenGL texture object.");
-            }
+            Timber.e("Could not generate a new OpenGL texture object.");
             return null;
         }
         return textureObjectIds;

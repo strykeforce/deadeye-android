@@ -1,5 +1,7 @@
 package org.team2767.deadeye.opengl;
 
+import android.support.annotation.NonNull;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -17,7 +19,7 @@ public class VertexArray {
 
     private final FloatBuffer floatBuffer;
 
-    public VertexArray(float[] vertexData) {
+    public VertexArray(@NonNull float[] vertexData) {
         floatBuffer = ByteBuffer
                 .allocateDirect(vertexData.length * FLOAT_BYTES)
                 .order(ByteOrder.nativeOrder())
@@ -25,7 +27,7 @@ public class VertexArray {
                 .put(vertexData);
     }
 
-    public void setVertexAttribPointer(int dataOffset, int attributeLocation, int componentCount, int stride) {
+    public void setVertexAttributePointer(int dataOffset, int attributeLocation, int componentCount, int stride) {
         floatBuffer.position(dataOffset);
         glVertexAttribPointer(attributeLocation, componentCount, GL_FLOAT, false, stride, floatBuffer);
         glEnableVertexAttribArray(attributeLocation);

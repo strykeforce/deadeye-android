@@ -1,6 +1,7 @@
 package org.team2767.deadeye.opengl;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import org.team2767.deadeye.R;
 
@@ -20,6 +21,7 @@ import static android.opengl.GLES20.glUniform1i;
  * shader program with that shader unit extension enabled.
  * https://developer.android.com/reference/android/graphics/SurfaceTexture.html
  */
+@SuppressWarnings("unused")
 public class CameraShaderProgram extends AbstractShaderProgram {
 
     // uniform locations
@@ -30,7 +32,7 @@ public class CameraShaderProgram extends AbstractShaderProgram {
     private final int aTextureCoordsLocation;
 
     @Inject
-    public CameraShaderProgram(Context context) {
+    public CameraShaderProgram(@NonNull Context context) {
         super(context, R.raw.texture_vertex_shader, R.raw.camera_fragment_shader);
 
         uTextureUnitLocation = glGetUniformLocation(program, U_TEXTURE_UNIT);
@@ -45,10 +47,12 @@ public class CameraShaderProgram extends AbstractShaderProgram {
         glUniform1i(uTextureUnitLocation, 0); // tell this sampler to use texture unit 0
     }
 
+    @Override
     public int getPositionLocation() {
         return aPositionLocation;
     }
 
+    @Override
     public int getTextureCoordsLocation() {
         return aTextureCoordsLocation;
     }

@@ -1,6 +1,8 @@
 package org.team2767.deadeye.opengl;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.RawRes;
 
 import static android.opengl.GLES20.glUseProgram;
 
@@ -9,16 +11,16 @@ import static android.opengl.GLES20.glUseProgram;
  */
 abstract class AbstractShaderProgram {
     // uniform constants
-    protected static final String U_TEXTURE_UNIT = "u_TextureUnit";
+    static final String U_TEXTURE_UNIT = "u_TextureUnit";
 
     // attribute constants
-    protected static final String A_POSITION = "a_Position";
-    protected static final String A_COLOR = "a_Color";
-    protected static final String A_TEXTURE_COORDS = "a_TextureCoordinates";
+    static final String A_POSITION = "a_Position";
+    static final String A_TEXTURE_COORDS = "a_TextureCoordinates";
 
-    protected final int program;
+    final int program;
 
-    protected AbstractShaderProgram(Context context, int vertexShaderResourceId, int fragmentShaderResourceId) {
+    AbstractShaderProgram(@NonNull Context context, @RawRes int vertexShaderResourceId,
+                          @RawRes int fragmentShaderResourceId) {
         program = ShaderHelper.buildProgram(
                 ResourceHelper.readShaderSource(context, vertexShaderResourceId),
                 ResourceHelper.readShaderSource(context, fragmentShaderResourceId));
@@ -27,4 +29,9 @@ abstract class AbstractShaderProgram {
     public void useProgram() {
         glUseProgram(program);
     }
+
+    public abstract int getPositionLocation();
+
+    public abstract int getTextureCoordsLocation();
+
 }

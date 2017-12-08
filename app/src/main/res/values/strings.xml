@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Deadeye</string>
+    <string name="request_permission">I can haz the camera?</string>
+    <string name="denied_permission">No camera? Bye!</string>
 </resources>

@@ -1,5 +1,7 @@
 package org.team2767.deadeye.opengl;
 
+import android.support.annotation.NonNull;
+
 import javax.inject.Inject;
 
 import static android.opengl.GLES20.GL_TRIANGLE_STRIP;
@@ -31,15 +33,15 @@ public class DisplayRectangle {
     private final VertexArray vertexArray;
 
     @Inject
-    public DisplayRectangle() {
+    DisplayRectangle() {
         vertexArray = new VertexArray(VERTEX_DATA);
     }
 
-    public void bindAttributes(TextureShaderProgram program) {
-        vertexArray.setVertexAttribPointer(0, program.getPositionLocation(),
+    public void bindAttributes(@NonNull AbstractShaderProgram program) {
+        vertexArray.setVertexAttributePointer(0, program.getPositionLocation(),
                 POSITION_COMPONENT_COUNT, STRIDE);
 
-        vertexArray.setVertexAttribPointer(POSITION_COMPONENT_COUNT, program.getTextureCoordsLocation(),
+        vertexArray.setVertexAttributePointer(POSITION_COMPONENT_COUNT, program.getTextureCoordsLocation(),
                 TEXTURE_COORDS_COMPONENT_COUNT, STRIDE);
     }
 

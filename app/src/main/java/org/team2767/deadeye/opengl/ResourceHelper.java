@@ -1,6 +1,8 @@
 package org.team2767.deadeye.opengl;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.support.annotation.RawRes;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,9 +12,9 @@ import java.io.InputStreamReader;
 /**
  * Utility to read resources.
  */
-public class ResourceHelper {
+class ResourceHelper {
 
-    public static String readShaderSource(final Context context, final int resourceId) {
+    static String readShaderSource(@NonNull final Context context, @RawRes final int resourceId) {
 
         final InputStream inputStream = context.getResources().openRawResource(
                 resourceId);

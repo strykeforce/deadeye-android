@@ -1,6 +1,7 @@
 package org.team2767.deadeye.opengl;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import org.team2767.deadeye.R;
 
@@ -27,7 +28,7 @@ public class TextureShaderProgram extends AbstractShaderProgram {
     private final int aTextureCoordsLocation;
 
     @Inject
-    public TextureShaderProgram(Context context) {
+    public TextureShaderProgram(@NonNull Context context) {
         super(context, R.raw.texture_vertex_shader, R.raw.texture_fragment_shader);
 
         uTextureUnitLocation = glGetUniformLocation(program, U_TEXTURE_UNIT);
@@ -42,10 +43,12 @@ public class TextureShaderProgram extends AbstractShaderProgram {
         glUniform1i(uTextureUnitLocation, 0); // tell this sampler to use texture unit 0
     }
 
+    @Override
     public int getPositionLocation() {
         return aPositionLocation;
     }
 
+    @Override
     public int getTextureCoordsLocation() {
         return aTextureCoordsLocation;
     }
