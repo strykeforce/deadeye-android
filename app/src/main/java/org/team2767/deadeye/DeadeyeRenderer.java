@@ -107,7 +107,7 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         }
 
         GLES20.glClear(GL_COLOR_BUFFER_BIT);
-        
+
         cameraProgram.useProgram();
         displayRectangle.bindAttributes(cameraProgram);
         displayRectangle.draw();

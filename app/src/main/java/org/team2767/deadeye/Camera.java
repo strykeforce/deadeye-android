@@ -18,7 +18,6 @@ import android.util.SizeF;
 import android.view.Surface;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +33,7 @@ public class Camera {
 
     private final static int WIDTH = 640;
     private final static int HEIGHT = 480;
+
     private final Size PREVIEW_SIZE = new Size(WIDTH, HEIGHT);
 
     private final Context context;
@@ -115,6 +115,11 @@ public class Camera {
                     continue;
                 }
 
+                for (Size size : map.getOutputSizes(SurfaceTexture.class)) {
+                    Timber.d("preview size = %s", size);
+                }
+
+
                 float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
                 assert focalLengths != null;
                 if (focalLengths.length != 1) {
@@ -136,7 +141,7 @@ public class Camera {
 
                 Size totalArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
                 assert totalArraySize != null;
-                Timber.d("Pixel array size: %s", totalArraySize.toString());
+                Timber.d("Pixel array size: %s", totalArraySize);
                 int widthPixelDimSensor = totalArraySize.getWidth();
                 double widthRatio = (double) widthPixelDimActual / (double) widthPixelDimSensor;
                 widthDim *= widthRatio;
