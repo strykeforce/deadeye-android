@@ -46,15 +46,15 @@ public class Camera {
 
     private SurfaceTexture surfaceTexture;
 
-    private Semaphore openCloseLock = new Semaphore(1);
+    private final Semaphore openCloseLock = new Semaphore(1);
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
-        @DebugLog
-        public void onOpened(@NonNull CameraDevice openedCameraDevice) {
+        public void onOpened(@NonNull CameraDevice cameraDevice) {
+            Timber.d("Open state callback for %s", cameraDevice);
             openCloseLock.release();
-            cameraDevice = openedCameraDevice;
+            Camera.this.cameraDevice = cameraDevice;
             createCameraPreviewSession(surfaceTexture);
         }
 
@@ -63,7 +63,7 @@ public class Camera {
             Timber.w("Disconnect state callback for %s", cameraDevice);
             openCloseLock.release();
             cameraDevice.close();
-            cameraDevice = null;
+            Camera.this.cameraDevice = null;
         }
 
         @Override
@@ -71,7 +71,7 @@ public class Camera {
             Timber.wtf("Error state callback for %s (%d)", cameraDevice, error);
             openCloseLock.release();
             cameraDevice.close();
-            cameraDevice = null;
+            Camera.this.cameraDevice = null;
         }
 
     };
@@ -82,20 +82,20 @@ public class Camera {
     }
 
     @DebugLog
-    public void start(SurfaceTexture surfaceTexture) {
+    void start(SurfaceTexture surfaceTexture) {
         this.surfaceTexture = surfaceTexture;
         startBackgroundThread();
         open();
     }
 
     @DebugLog
-    public void stop() {
+    void stop() {
         closeCamera();
         stopBackgroundThread();
     }
 
     @DebugLog
-    public void open() {
+    private void open() {
         CameraManager manager = context.getSystemService(CameraManager.class);
         assert manager != null;
         try {
@@ -275,7 +275,7 @@ public class Camera {
             cameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
 
                 @Override
-                public void onConfigured(CameraCaptureSession cameraCaptureSession) {
+                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     captureSession = cameraCaptureSession;
                     try {
 //                        for (Map.Entry<CaptureRequest.Key, ?> setting : mSettings.camera_settings.entrySet()) {
@@ -291,7 +291,7 @@ public class Camera {
                 }
 
                 @Override
-                public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
+                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     Timber.e("createCameraPreviewSession failed");
                     openCloseLock.release();
                 }
@@ -300,8 +300,6 @@ public class Camera {
             Timber.e(e, "createCameraPreviewSession failed");
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while createCameraPreviewSession", e);
-        } finally {
-            //mCameraOpenCloseLock.release();
         }
     }
 }

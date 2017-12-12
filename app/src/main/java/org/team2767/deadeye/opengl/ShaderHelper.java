@@ -80,8 +80,7 @@ class ShaderHelper {
      * Links a vertex shader and a fragment shader together into an OpenGL
      * program. Returns the OpenGL program object ID, or 0 if linking failed.
      */
-    public static int linkProgram(int vertexShaderId, int fragmentShaderId) {
-
+    private static int linkProgram(int vertexShaderId, int fragmentShaderId) {
         final int programObjectId = glCreateProgram();
 
         if (programObjectId == 0) {
@@ -117,7 +116,7 @@ class ShaderHelper {
      * Validates an OpenGL program. Should only be called when developing the
      * application.
      */
-    private static boolean validateProgram(int programObjectId) {
+    private static void validateProgram(int programObjectId) {
         glValidateProgram(programObjectId);
         final int[] validateStatus = new int[1];
         glGetProgramiv(programObjectId, GL_VALIDATE_STATUS,
@@ -125,15 +124,13 @@ class ShaderHelper {
         Timber.v("Results of validating program: %d\nLog: %s", validateStatus[0],
                 glGetProgramInfoLog(programObjectId));
 
-        return validateStatus[0] != 0;
     }
 
     /**
      * Helper function that compiles the shaders, links and validates the
      * program, returning the program ID.
      */
-    static int buildProgram(String vertexShaderSource,
-                                   String fragmentShaderSource) {
+    static int buildProgram(String vertexShaderSource, String fragmentShaderSource) {
         int program;
 
         int vertexShader = compileVertexShader(vertexShaderSource);

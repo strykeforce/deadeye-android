@@ -1,11 +1,8 @@
 package org.team2767.deadeye;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
-import android.support.v4.app.ActivityCompat;
 
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
@@ -13,6 +10,7 @@ import com.google.auto.factory.Provided;
 import org.team2767.deadeye.di.Injector;
 import org.team2767.deadeye.opengl.CameraShaderProgram;
 import org.team2767.deadeye.opengl.DisplayRectangle;
+import org.team2767.deadeye.opengl.FrameBufferHelper;
 import org.team2767.deadeye.opengl.TextureHelper;
 import org.team2767.deadeye.opengl.TextureShaderProgram;
 
@@ -23,6 +21,9 @@ import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
+import static android.opengl.GLES20.GL_FRAMEBUFFER;
+import static android.opengl.GLES20.glBindFramebuffer;
+import static android.opengl.GLES20.glClear;
 
 /**
  * Renderer.
@@ -40,8 +41,9 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private CameraShaderProgram cameraProgram;
 
     private int cameraTextureId;
-    private int targetTextureId;
     private int feedbackTextureId;
+    private int targetTextureId;
+    private int targetFrameBufferId; // draws to targetTextureId
 
     private SurfaceTexture surfaceTexture;
 
@@ -50,8 +52,8 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private int width;
     private int height;
 
-    public DeadeyeRenderer(DeadeyeView deadeyeView, @Provided DisplayRectangle displayRectangle,
-                           @Provided Camera camera) {
+    DeadeyeRenderer(DeadeyeView deadeyeView, @Provided DisplayRectangle displayRectangle,
+                    @Provided Camera camera) {
         this.deadeyeView = deadeyeView;
         this.displayRectangle = displayRectangle;
         this.camera = camera;
@@ -81,10 +83,13 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         feedbackTextureId = TextureHelper.initTexture(width, height);
         cameraTextureId = TextureHelper.initImageTexture();
 
+        textureProgram.setTexture(targetTextureId);
         cameraProgram.setTexture(cameraTextureId);
 
         surfaceTexture = new SurfaceTexture(cameraTextureId);
         surfaceTexture.setOnFrameAvailableListener(this);
+
+        targetFrameBufferId = FrameBufferHelper.initFrameBuffer(targetTextureId);
 
         camera.stop();
         camera.start(surfaceTexture);
@@ -106,10 +111,18 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
             frameAvailable = false;
         }
 
-        GLES20.glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
+        // draw camera texture to framebuffer texture
+        glBindFramebuffer(GL_FRAMEBUFFER, targetFrameBufferId);
         cameraProgram.useProgram();
         displayRectangle.bindAttributes(cameraProgram);
+        displayRectangle.draw();
+
+        // draw framebuffer texture to screen
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        textureProgram.useProgram();
+        displayRectangle.bindAttributes(textureProgram);
         displayRectangle.draw();
     }
 

@@ -13,7 +13,7 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 /**
  * Container for OpenGL per-vertex data.
  */
-public class VertexArray {
+class VertexArray {
 
     public final static int FLOAT_BYTES = Float.SIZE / Byte.SIZE;
 

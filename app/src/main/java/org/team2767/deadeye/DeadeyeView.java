@@ -33,9 +33,4 @@ public class DeadeyeView extends GLSurfaceView {
         this(context, null);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-    }
 }

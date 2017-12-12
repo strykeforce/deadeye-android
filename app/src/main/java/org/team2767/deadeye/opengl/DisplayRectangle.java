@@ -17,8 +17,8 @@ public class DisplayRectangle {
 
     private final static int STRIDE =
             (POSITION_COMPONENT_COUNT + TEXTURE_COORDS_COMPONENT_COUNT) * VertexArray.FLOAT_BYTES;
-    
-        private static final float[] VERTEX_DATA = { // triangle strip
+
+    private static final float[] VERTEX_DATA = { // triangle strip
             // X, Y, S, T
             -1f, -1f, 1f, 0f,
             1f, -1f, 0f, 0f,
