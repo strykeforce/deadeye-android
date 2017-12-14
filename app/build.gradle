@@ -13,7 +13,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-frtti -fexceptions"
-                abiFilters 'armeabi-v7a' // HelloJNI example easy way to get this for device
+                abiFilters 'armeabi-v7a', 'arm64-v8a' // HelloJNI example easy way to get this for device
                 arguments "-DOpenCV_DIR=" + file(getOpenCVDir())
             }
         }
