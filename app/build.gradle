@@ -13,6 +13,8 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-frtti -fexceptions"
+                abiFilters 'armeabi-v7a' // HelloJNI example easy way to get this for device
+                arguments "-DOpenCV_DIR=" + file(getOpenCVDir())
             }
         }
     }
@@ -49,4 +51,15 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+}
+
+def getOpenCVDir() {
+    Properties properties = new Properties()
+    properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
+    def externalModuleDir = properties.getProperty('opencv.dir', null)
+    if (externalModuleDir == null) {
+        throw new GradleException(
+                "OpenCV location not found. Define location with opencv.dir in the local.properties file!")
+    }
+    return externalModuleDir
 }
