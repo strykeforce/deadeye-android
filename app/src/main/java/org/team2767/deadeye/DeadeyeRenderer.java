@@ -47,8 +47,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     private SurfaceTexture surfaceTexture;
 
-    private boolean frameAvailable;
-
     private int width;
     private int height;
 
@@ -106,17 +104,12 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     @Override
     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-        frameAvailable = true;
         deadeyeView.requestRender();
     }
 
     @Override
     public void onDrawFrame(GL10 unused) {
-
-        if (frameAvailable) {
-            surfaceTexture.updateTexImage();
-            frameAvailable = false;
-        }
+        surfaceTexture.updateTexImage();
 
         // draw camera texture to framebuffer texture
         glBindFramebuffer(GL_FRAMEBUFFER, targetFrameBufferId);
