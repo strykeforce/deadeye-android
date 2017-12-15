@@ -3,7 +3,6 @@
 #include <opencv2/opencv.hpp>
 
 #include "frame_processor.h"
-#include "hello.h"
 #include "log.h"
 
 using namespace deadeye;
@@ -32,21 +31,20 @@ jlong init(
 extern "C" JNICALL
 void release(JNIEnv *env, jobject, jlong pointer) {
     LOGD("Releasing native FrameProcessor");
-    FrameProcessor *frameProcessor = reinterpret_cast<FrameProcessor *>(pointer);
-    delete frameProcessor;
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    delete fp;
 }
 
 extern "C" JNICALL
 void process(JNIEnv *env, jobject, jlong pointer) {
-    FrameProcessor *frameProcessor = reinterpret_cast<FrameProcessor *>(pointer);
-    frameProcessor->process();
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->process();
 }
 
 static JNINativeMethod methods[] = {
-        {"stringFromJNI", "()Ljava/lang/String;", (void *) ohai},
-        {"init",          "(IIIIIIIII)J",         (void *) init},
-        {"process",       "(J)V",                 (void *) process},
-        {"release",       "(J)V",                 (void *) release},
+        {"init",    "(IIIIIIIII)J", (void *) init},
+        {"process", "(J)V",         (void *) process},
+        {"release", "(J)V",         (void *) release},
 };
 
 extern "C"

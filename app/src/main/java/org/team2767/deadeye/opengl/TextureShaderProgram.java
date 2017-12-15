@@ -7,7 +7,9 @@ import org.team2767.deadeye.R;
 
 import javax.inject.Inject;
 
+import static android.opengl.GLES20.GL_TEXTURE0;
 import static android.opengl.GLES20.GL_TEXTURE_2D;
+import static android.opengl.GLES20.glActiveTexture;
 import static android.opengl.GLES20.glGetAttribLocation;
 
 /**

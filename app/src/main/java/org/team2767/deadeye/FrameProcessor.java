@@ -15,9 +15,6 @@ public class FrameProcessor {
         objPtr = init(outputTex, width, height, hueMin, hueMax, satMin, satMax, valMin, valMax);
     }
 
-    @NonNull
-    public native String stringFromJNI();
-
     void process() {
         process(objPtr);
     }

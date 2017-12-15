@@ -1,4 +1,4 @@
-#include <opencv2/core/mat.hpp>
+#include <opencv2/imgproc.hpp>
 #include "frame_processor.h"
 
 #include "log.h"
@@ -32,6 +32,8 @@ void FrameProcessor::process() {
 
     static cv::Mat feedback;
     feedback = frame;
+
+    cv::circle(feedback, cv::Point(320, 240), 40, cv::Scalar(244, 226, 66), 3);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, feedback_tex_);

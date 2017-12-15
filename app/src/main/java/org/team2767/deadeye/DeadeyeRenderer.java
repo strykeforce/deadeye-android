@@ -97,7 +97,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (frameProcessor != null) {
             frameProcessor.release();
         }
-
         frameProcessor = new FrameProcessor(feedbackTextureId, Camera.WIDTH, Camera.HEIGHT,
                 40, 80, 100, 255, 30, 255);
     }

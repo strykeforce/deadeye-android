@@ -18,7 +18,6 @@ add_library( # Sets the name of the library.
 
              # Provides a relative path to your source file(s).
              src/main/cpp/loader.cpp
-             src/main/cpp/hello.cpp
              src/main/cpp/frame_processor.cpp
              )
 
