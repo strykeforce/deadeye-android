@@ -24,11 +24,6 @@ public class DeadeyeActivity extends AppCompatActivity
     private final static int REQUEST_CAMERA_PERMISSION = 2767;
     private final static String FRAGMENT_DIALOG = "dialog";
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +33,7 @@ public class DeadeyeActivity extends AppCompatActivity
         setContentView(R.layout.activity_deadeye);
 
         TextView tv = findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        tv.setText("OHAI");
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -48,13 +43,6 @@ public class DeadeyeActivity extends AppCompatActivity
         Timber.tag("LifeCycles");
         Timber.d("onCreate() finished");
     }
-
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    @NonNull
-    public native String stringFromJNI();
 
     // camera permissions
 

@@ -52,6 +52,8 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private int width;
     private int height;
 
+    private FrameProcessor frameProcessor;
+
     DeadeyeRenderer(DeadeyeView deadeyeView, @Provided DisplayRectangle displayRectangle,
                     @Provided Camera camera) {
         this.deadeyeView = deadeyeView;
@@ -75,15 +77,15 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     @Override
     @DebugLog
     public void onSurfaceChanged(GL10 unused, int width, int height) {
-        GLES20.glViewport(0, 0, width, height);
+        Timber.d("Viewport is %d x %d", width, height);
         this.width = width;
         this.height = height;
 
-        targetTextureId = TextureHelper.initTexture(width, height);
-        feedbackTextureId = TextureHelper.initTexture(width, height);
+        targetTextureId = TextureHelper.initTexture(Camera.WIDTH, Camera.HEIGHT);
+        feedbackTextureId = TextureHelper.initTexture(Camera.WIDTH, Camera.HEIGHT);
         cameraTextureId = TextureHelper.initImageTexture();
 
-        textureProgram.setTexture(targetTextureId);
+        textureProgram.setTexture(feedbackTextureId);
         cameraProgram.setTexture(cameraTextureId);
 
         surfaceTexture = new SurfaceTexture(cameraTextureId);
@@ -94,7 +96,12 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         camera.stop();
         camera.start(surfaceTexture);
 
-        Timber.d("width = %d height = %d", width, height);
+        if (frameProcessor != null) {
+            frameProcessor.release();
+        }
+
+        frameProcessor = new FrameProcessor(feedbackTextureId, Camera.WIDTH, Camera.HEIGHT,
+                40, 80, 100, 255, 30, 255);
     }
 
     @Override
@@ -111,16 +118,22 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
             frameAvailable = false;
         }
 
-        glClear(GL_COLOR_BUFFER_BIT);
-
         // draw camera texture to framebuffer texture
         glBindFramebuffer(GL_FRAMEBUFFER, targetFrameBufferId);
+        GLES20.glViewport(0, 0, Camera.WIDTH, Camera.HEIGHT);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         cameraProgram.useProgram();
         displayRectangle.bindAttributes(cameraProgram);
         displayRectangle.draw();
 
+        frameProcessor.process();
+
         // draw framebuffer texture to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GLES20.glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         textureProgram.useProgram();
         displayRectangle.bindAttributes(textureProgram);
         displayRectangle.draw();

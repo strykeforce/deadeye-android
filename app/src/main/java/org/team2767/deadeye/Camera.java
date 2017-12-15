@@ -31,8 +31,8 @@ import timber.log.Timber;
  */
 public class Camera {
 
-    private final static int WIDTH = 640;
-    private final static int HEIGHT = 480;
+    final static int WIDTH = 640;
+    final static int HEIGHT = 480;
 
     private final Size PREVIEW_SIZE = new Size(WIDTH, HEIGHT);
 
