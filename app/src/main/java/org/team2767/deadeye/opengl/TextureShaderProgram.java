@@ -23,16 +23,11 @@ public class TextureShaderProgram extends AbstractShaderProgram {
 
     @Inject
     public TextureShaderProgram(@NonNull Context context) {
-        super(context, R.raw.texture_fragment_shader);
+        super(context, R.raw.texture_fragment_shader, GL_TEXTURE_2D);
 
         aPositionLocation = glGetAttribLocation(program, A_POSITION);
         aTextureCoordsLocation = glGetAttribLocation(program, A_TEXTURE_COORDS);
 
-        GLUtil.checkError();
-    }
-
-    public void setTexture(int textureId) {
-        setTexture(GL_TEXTURE_2D, textureId);
         GLUtil.checkError();
     }
 

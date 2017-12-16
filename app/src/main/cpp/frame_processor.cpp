@@ -27,16 +27,18 @@ FrameProcessor::FrameProcessor(
 
 void FrameProcessor::process() {
     static cv::Mat frame;
+
+    // allocate frame storage and load pixels from current frame buffer
+    // on entry, we assume frame buffer is bound
     frame.create(height_, width_, CV_8UC4);
     glReadPixels(0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE, frame.data);
 
-    static cv::Mat feedback;
-    feedback = frame;
+    cv::circle(frame, cv::Point(320, 240), 40, cv::Scalar(244, 226, 66), 3);
 
-    cv::circle(feedback, cv::Point(320, 240), 40, cv::Scalar(244, 226, 66), 3);
-
+    // bind texture to sampler and update texture with annotated frame
+    // on return, renderer will assume texture is bound
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, feedback_tex_);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE,
-                    feedback.data);
+                    frame.data);
 }

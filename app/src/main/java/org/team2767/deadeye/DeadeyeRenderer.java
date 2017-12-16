@@ -119,6 +119,8 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         displayRectangle.bindAttributes(cameraProgram);
         displayRectangle.draw();
 
+        // on entry, process() will assume frame buffer to read pixels from is bound
+        // on return, the feedback texture is bound to texture unit 0
         frameProcessor.process();
 
         // draw framebuffer texture to screen

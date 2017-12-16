@@ -25,16 +25,11 @@ public class CameraShaderProgram extends AbstractShaderProgram {
 
     @Inject
     public CameraShaderProgram(@NonNull Context context) {
-        super(context, R.raw.camera_fragment_shader);
+        super(context, R.raw.camera_fragment_shader, GL_TEXTURE_EXTERNAL_OES);
 
         aPositionLocation = glGetAttribLocation(program, A_POSITION);
         aTextureCoordsLocation = glGetAttribLocation(program, A_TEXTURE_COORDS);
 
-        GLUtil.checkError();
-    }
-
-    public void setTexture(int textureId) {
-        setTexture(GL_TEXTURE_EXTERNAL_OES, textureId);
         GLUtil.checkError();
     }
 

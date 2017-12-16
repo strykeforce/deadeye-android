@@ -27,26 +27,30 @@ abstract class AbstractShaderProgram {
     static final String A_TEXTURE_COORDS = "a_TextureCoordinates";
 
     final int program;
+    private final int shaderType;
 
     AbstractShaderProgram(@NonNull Context context,
-                          @RawRes int fragmentShaderResourceId) {
+                          @RawRes int fragmentShaderResourceId, int shaderType) {
+        this.shaderType = shaderType;
         program = ShaderHelper.buildProgram(
                 ResourceHelper.readShaderSource(context, R.raw.texture_vertex_shader),
                 ResourceHelper.readShaderSource(context, fragmentShaderResourceId));
-        GLUtil.checkError();
-    }
 
-    void setTexture(int type, int textureId) {
-        glActiveTexture(GL_TEXTURE0); // active texture unit is texture unit 0 for subsequent calls
-        glBindTexture(type, textureId); // bind our texture to active texture unit
         int uniformLocation = glGetUniformLocation(program, U_TEXTURE_UNIT);
         if (uniformLocation == -1) {
             Timber.e("Not an active uniform variable: %s", U_TEXTURE_UNIT);
         }
-
         // set up uniform
         glUseProgram(program);
         glUniform1i(uniformLocation, 0); // tell this sampler to use texture unit 0
+
+        GLUtil.checkError();
+    }
+
+    public void setTexture(int textureId) {
+        glActiveTexture(GL_TEXTURE0); // active texture unit is texture unit 0 for subsequent calls
+        glBindTexture(shaderType, textureId); // bind our texture to active texture unit
+        GLUtil.checkError();
     }
 
     public void useProgram() {
