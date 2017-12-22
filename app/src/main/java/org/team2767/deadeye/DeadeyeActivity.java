@@ -14,6 +14,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
+import org.team2767.deadeye.di.Injector;
+
+import io.reactivex.Flowable;
 import timber.log.Timber;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
@@ -24,9 +27,21 @@ public class DeadeyeActivity extends AppCompatActivity
     private final static int REQUEST_CAMERA_PERMISSION = 2767;
     private final static String FRAGMENT_DIALOG = "dialog";
 
+    private Network network;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        network = Injector.get().network();
+        network.start();
+
+        RxBus bus = Injector.get().bus();
+        Flowable<Object> connEventEmitter = bus.asFlowable();
+
+        connEventEmitter
+//                .ofType(Network.ConnectionEvent.class)
+                .subscribe(event -> Timber.i(event.toString()));
+
 
         getWindow().setFlags(FLAG_KEEP_SCREEN_ON, FLAG_KEEP_SCREEN_ON); // ...and bright
 
@@ -40,7 +55,6 @@ public class DeadeyeActivity extends AppCompatActivity
             requestCameraPermission();
         }
 
-        Timber.tag("LifeCycles");
         Timber.d("onCreate() finished");
     }
 

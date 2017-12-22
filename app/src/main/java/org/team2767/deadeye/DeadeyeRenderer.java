@@ -57,8 +57,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         this.deadeyeView = deadeyeView;
         this.displayRectangle = displayRectangle;
         this.camera = camera;
-        Timber.tag("LifeCycles");
-        Timber.d("DeadeyeRenderer constructed");
     }
 
     @Override
@@ -68,8 +66,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
         textureProgram = Injector.get().textureShaderProgram();
         cameraProgram = Injector.get().cameraShaderProgram();
-
-        Timber.d("onSurfaceCreated() finished");
     }
 
     @Override

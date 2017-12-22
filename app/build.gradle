@@ -48,6 +48,10 @@ dependencies {
     compileOnly 'org.glassfish:javax.annotation:10.0-b28'
     // https://github.com/JakeWharton/timber
     implementation 'com.jakewharton.timber:timber:4.6.0'
+    // https://github.com/ReactiveX/RxJava
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.7'
+    implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
