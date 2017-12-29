@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import org.team2767.deadeye.di.Injector;
+import org.team2767.deadeye.rx.RxBus;
 
 import io.reactivex.Flowable;
 import timber.log.Timber;

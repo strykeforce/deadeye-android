@@ -1,4 +1,4 @@
-package org.team2767.deadeye;
+package org.team2767.deadeye.rx;
 
 import com.jakewharton.rxrelay2.PublishRelay;
 import com.jakewharton.rxrelay2.Relay;
