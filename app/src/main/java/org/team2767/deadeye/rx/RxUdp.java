@@ -10,6 +10,7 @@ import hugo.weaving.DebugLog;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -17,29 +18,52 @@ public class RxUdp {
 
     private final static int BUF_SZ = 512;
 
-    private final DatagramSocket socket;
+    private RxUdp() {}
 
-    private RxUdp() {
-        try {
-            socket = new DatagramSocket();
-        } catch (SocketException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    public static DisposableObserver<DatagramPacket> datagramPacketObserver() {
+        return new DisposableObserver<DatagramPacket>() {
+            DatagramSocket socket;
 
-    public static Observer<String> observerTo(SocketAddress address) {
-        return new UdpObserver(address);
+            @Override
+            protected void onStart() {
+                try {
+                    Timber.d("Initializing datagramPacketObserver socket");
+                    socket = new DatagramSocket();
+                } catch (Exception e) {
+                    Timber.e(e);
+                }
+            }
+
+            @Override
+            public void onNext(DatagramPacket datagramPacket) {
+                try {
+                    socket.send(datagramPacket);
+                } catch (Exception e) {
+                    Timber.e(e);
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Timber.e(e);
+            }
+
+            @Override
+            public void onComplete() {
+                Timber.w("Completed");
+            }
+        };
     }
 
     public static Observable<DatagramPacket> observableFrom(int port) {
         return Observable.<DatagramPacket>create(
                 e -> {
-                    Timber.d("observableFor create called");
+                    Timber.d("Create observableFrom");
                     DatagramSocket socket = new DatagramSocket(port);
                     e.setCancellable(
                             () -> {
                                 socket.close();
-                                Timber.d("closed socket");
+                                Timber.d("Closed socket listening on port %d", port);
                             });
                     while (!e.isDisposed()) {
                         DatagramPacket packet = new DatagramPacket(new byte[BUF_SZ], BUF_SZ);
@@ -47,7 +71,6 @@ public class RxUdp {
                             socket.receive(packet);
                         } catch (IOException ioe) {
                             if (socket.isClosed()) {
-                                Timber.d("socket.isClosed()");
                                 e.onComplete();
                                 break;
                             } else {
@@ -61,49 +84,4 @@ public class RxUdp {
                 .subscribeOn(Schedulers.io());
     }
 
-    private static class UdpObserver implements Observer<String> {
-        private final SocketAddress address;
-        private DatagramSocket socket;
-        private Disposable sub;
-
-        public UdpObserver(SocketAddress address) {
-            Timber.d("create UDP send observer to address %s", address);
-            this.address = address;
-        }
-
-        @Override
-        @DebugLog
-        public void onSubscribe(Disposable d) {
-            sub = d;
-            try {
-                socket = new DatagramSocket();
-            } catch (SocketException e) {
-                Timber.e(e, "error creating socket for sending");
-                sub.dispose();
-            }
-        }
-
-        @Override
-        public void onNext(String s) {
-            Timber.d("sending '%s' to %s", s, address);
-            byte[] buf = s.getBytes();
-            DatagramPacket packet = new DatagramPacket(buf, buf.length, address);
-            try {
-                socket.send(packet);
-            } catch (IOException e) {
-                Timber.e(e, "observableFor() error");
-                //        sub.dispose();
-            }
-        }
-
-        @Override
-        public void onError(Throwable e) {
-            Timber.e(e, "observableFor onError");
-        }
-
-        @Override
-        public void onComplete() {
-            Timber.i("observableFor onComplete");
-        }
-    }
 }

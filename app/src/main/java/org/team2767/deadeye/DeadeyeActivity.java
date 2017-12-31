@@ -17,6 +17,7 @@ import android.widget.TextView;
 import org.team2767.deadeye.di.Injector;
 import org.team2767.deadeye.rx.RxBus;
 
+import hugo.weaving.DebugLog;
 import io.reactivex.Flowable;
 import timber.log.Timber;
 
@@ -33,8 +34,8 @@ public class DeadeyeActivity extends AppCompatActivity
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         network = Injector.get().network();
-        network.start();
 
         RxBus bus = Injector.get().bus();
         Flowable<Object> connEventEmitter = bus.asFlowable();
@@ -55,11 +56,20 @@ public class DeadeyeActivity extends AppCompatActivity
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
         }
-
-        Timber.d("onCreate() finished");
     }
 
-    // camera permissions
+    @Override
+    protected void onStart() {
+        super.onStart();
+        network.start();
+    }
+
+    @Override
+    protected void onStop() {
+        network.stop();
+        super.onStop();
+    }
+// camera permissions
 
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
