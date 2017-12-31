@@ -116,7 +116,7 @@ public class Camera {
                 }
 
                 for (Size size : map.getOutputSizes(SurfaceTexture.class)) {
-                    Timber.d("preview size = %s", size);
+                    Timber.v("preview size = %s", size);
                 }
 
 
@@ -169,9 +169,9 @@ public class Camera {
 
                 double focalLengthPixels = WIDTH * focalLengths[0] / widthDim;
 //                mView.setFocalLengthPixels(focalLengthPixels);
-                Timber.i("Camera focal length: %f pixels", focalLengthPixels);
-                Timber.i("Camera horizontal FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * widthDim / focalLengths[0])));
-                Timber.i("Camera vertical FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * heightDim / focalLengths[0])));
+                Timber.d("Camera focal length: %f pixels", focalLengthPixels);
+                Timber.d("Camera horizontal FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * widthDim / focalLengths[0])));
+                Timber.d("Camera vertical FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * heightDim / focalLengths[0])));
 
 
                 Timber.d("using camera: %s", cameraId);
@@ -244,7 +244,7 @@ public class Camera {
     @DebugLog
     private void createCameraPreviewSession(SurfaceTexture surfaceTexture) {
         int w = PREVIEW_SIZE.getWidth(), h = PREVIEW_SIZE.getHeight();
-        Timber.i("createCameraPreviewSession(%dx%d)", w, h);
+        Timber.d("createCameraPreviewSession(%dx%d)", w, h);
         if (w < 0 || h < 0)
             return;
         try {
@@ -283,7 +283,7 @@ public class Camera {
 //                        }
                         // FIXME: need to capture timestamp with captureCallback.onCaptureStarted
                         captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
-                        Timber.i("CameraPreviewSession has been started");
+                        Timber.d("CameraPreviewSession has been started");
                     } catch (CameraAccessException e) {
                         Timber.e(e, "createCaptureSession failed");
                     }
