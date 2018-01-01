@@ -9,24 +9,24 @@ import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 import hugo.weaving.DebugLog;
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import timber.log.Timber;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class Network {
 
     private final static int PORT = 5555;
     private final static String INTERFACE = "rndis0";
-    private final static String TETHERING = "Tethering";
+    private final static int TETHER_CHECK_SEC = 5;
     private final static String TETHER_COMMAND = "su -c service call connectivity 30 i32 1";
-    private final static String PING = "ping";
     private final static byte[] PONG = "pong".getBytes();
     private final static int PONG_SZ = PONG.length;
     private final static int PONG_LIMIT = 400;
@@ -62,18 +62,12 @@ public class Network {
         Timber.i("Starting Network connections");
 
         // periodically check for tethering network interface and call tether command if missing
-        Disposable disposable = Observable.interval(5, TimeUnit.SECONDS)
-                .flatMapSingle(i -> Observable.fromIterable(networkInterfaces())
-                        .map(NetworkInterface::getName)
-                        .filter(INTERFACE::equals)
-                        .singleOrError()
-                        .onErrorResumeNext(Single.fromCallable(() -> {
-                            Runtime.getRuntime().exec(TETHER_COMMAND);
-                            return TETHERING;
-                        }))
+        Disposable disposable = Observable.interval(TETHER_CHECK_SEC, SECONDS)
+                .flatMapMaybe(i -> Maybe.fromCallable(() -> NetworkInterface.getByName(INTERFACE))
+                        .doOnComplete(() -> Runtime.getRuntime().exec(TETHER_COMMAND))
                 )
-                .filter(TETHERING::equals)
-                .subscribe(Timber::i, Timber::e);
+                .ignoreElements()
+                .subscribe(() -> Timber.w("Tether check exited"), Timber::e);
         compositeDisposable.add(disposable);
 
         // listen for messages on given port
