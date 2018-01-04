@@ -38,7 +38,14 @@ void FrameProcessor::process() {
 
     cv::circle(frame, cv::Point(320, 240), 40, cv::Scalar(244, 226, 66), 3);
 
+    // sleep 20ms
+    struct timespec tim, tim2;
+    tim.tv_sec = 0;
+    tim.tv_nsec = 20 * 1000000L;
+    nanosleep(&tim, &tim2);
+
     // return data
+    data_.latency = 0;
     for (int i = 0; i < 4; ++i) {
         data_.values[i] = counter_++;
     }

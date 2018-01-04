@@ -18,6 +18,7 @@ import android.util.SizeF;
 import android.view.Surface;
 
 import java.util.Collections;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -38,6 +39,7 @@ public class Camera {
 
     private final Context context;
     private final Semaphore openCloseLock = new Semaphore(1);
+    private final ConcurrentLinkedQueue<TimeStamp> captureTimeStamps = new ConcurrentLinkedQueue<>();
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
     private CameraDevice cameraDevice;
@@ -71,25 +73,54 @@ public class Camera {
 
     };
 
+    /**
+     * Constructor.
+     *
+     * @param context the Application context.
+     */
     @Inject
     public Camera(Context context) {
         this.context = context;
     }
 
-    @DebugLog
+    /**
+     * Start camera capture to this SurfaceTexture.
+     *
+     * @param surfaceTexture the SurfaceTexture to use.
+     */
     void start(SurfaceTexture surfaceTexture) {
         this.surfaceTexture = surfaceTexture;
         startBackgroundThread();
         open();
     }
 
-    @DebugLog
+    /**
+     * Stop camera capture.
+     */
     void stop() {
         closeCamera();
         stopBackgroundThread();
     }
 
-    @DebugLog
+    /**
+     * Find TimeStamp record using the frame metadata timestamp and calculate latency.
+     *
+     * @param captureTimeStamp the timestamp from camera capture metadata
+     * @return the latency in milliseconds
+     */
+    int latencyForFrameWithTimeStamp(long captureTimeStamp) {
+        for (; ; ) {
+            TimeStamp ts = captureTimeStamps.poll();
+            if (ts == null) {
+                Timber.w("captureTimeStamps queue was empty, setting latency = 0");
+                return 0;
+            }
+            if (ts.captureTimeStamp == captureTimeStamp) {
+                return ts.latency();
+            }
+        }
+    }
+
     private void open() {
         CameraManager manager = context.getSystemService(CameraManager.class);
         assert manager != null;
@@ -235,7 +266,6 @@ public class Camera {
         }
     }
 
-
     @DebugLog
     private void createCameraPreviewSession(SurfaceTexture surfaceTexture) {
         int w = PREVIEW_SIZE.getWidth(), h = PREVIEW_SIZE.getHeight();
@@ -273,11 +303,20 @@ public class Camera {
                 public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     captureSession = cameraCaptureSession;
                     try {
+                        // TODO: set up camera exposure, etc
 //                        for (Map.Entry<CaptureRequest.Key, ?> setting : mSettings.camera_settings.entrySet()) {
 //                            previewRequestBuilder.set(setting.getKey(), setting.getValue());
 //                        }
-                        // FIXME: need to capture timestamp with captureCallback.onCaptureStarted for listener below
-                        captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
+                        captureSession.setRepeatingRequest(previewRequestBuilder.build(),
+                                new CameraCaptureSession.CaptureCallback() {
+                                    @Override
+                                    public void onCaptureStarted(@NonNull CameraCaptureSession session,
+                                                                 @NonNull CaptureRequest request,
+                                                                 long timestamp, long frameNumber) {
+                                        captureTimeStamps.add(new TimeStamp(timestamp));
+                                    }
+                                },
+                                backgroundHandler);
                         Timber.d("CameraPreviewSession has been started");
                     } catch (CameraAccessException e) {
                         Timber.e(e, "createCaptureSession failed");
@@ -295,6 +334,23 @@ public class Camera {
             Timber.e(e, "createCameraPreviewSession failed");
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while createCameraPreviewSession", e);
+        }
+    }
+
+    /**
+     * Correlate camera frame metadata timestamp with system time.
+     */
+    final static class TimeStamp {
+        final long captureTimeStamp;
+        final long systemTimeStamp;
+
+        TimeStamp(long frame) {
+            this.captureTimeStamp = frame;
+            systemTimeStamp = System.nanoTime();
+        }
+
+        int latency() {
+            return (int) ((System.nanoTime() - systemTimeStamp) / 1000000L); // in milliseconds
         }
     }
 }

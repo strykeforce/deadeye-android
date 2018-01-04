@@ -28,6 +28,8 @@ namespace deadeye {
 
     private:
         struct Data {
+            jint latency;
+            jint reserved; // struct 64-bit member alignment
             jdouble values[4];
         };
 

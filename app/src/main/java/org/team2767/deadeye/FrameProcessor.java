@@ -2,9 +2,6 @@ package org.team2767.deadeye;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-
-import timber.log.Timber;
 
 public class FrameProcessor {
 
@@ -26,7 +23,8 @@ public class FrameProcessor {
         return data;
     }
 
-    byte[] getBytes() {
+    byte[] getBytes(int latency) {
+        data.putInt(0, latency);
         data.rewind();
         byte[] dest = new byte[data.capacity()];
         data.get(dest);

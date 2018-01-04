@@ -114,7 +114,9 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         // on return, the feedback texture is bound to texture unit 0
         frameProcessor.process();
 //        Timber.d("bytes = %s", Arrays.toString(frameProcessor.getBytes()));
-        frameSubject.onNext(frameProcessor.getBytes());
+        int latency = camera.latencyForFrameWithTimeStamp(surfaceTexture.getTimestamp());
+        Timber.d("latency = %d", latency);
+        frameSubject.onNext(frameProcessor.getBytes(latency));
 //        Timber.d("observers = %b", frameSubject.hasObservers());
 
         // draw framebuffer texture to screen
