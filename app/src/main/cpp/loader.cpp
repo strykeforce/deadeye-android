@@ -24,16 +24,25 @@ jlong init(
         jint val_max
 ) {
     LOGD("Initializing native FrameProcessor");
-    return reinterpret_cast<jlong>(new FrameProcessor(ouputTex, width, height, hue_min, hue_max,
-                                                      sat_min, sat_max, val_min, val_max));
+    FrameProcessor *fp = new FrameProcessor(env, ouputTex, width, height, hue_min, hue_max,
+                                            sat_min, sat_max, val_min, val_max);
+    return reinterpret_cast<jlong>(fp);
 }
 
 extern "C" JNICALL
 void release(JNIEnv *env, jobject, jlong pointer) {
     LOGD("Releasing native FrameProcessor");
     FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->releaseData(env);
     delete fp;
 }
+
+extern "C" JNICALL
+jobject data(JNIEnv *env, jobject, jlong pointer) {
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    return fp->getData();
+}
+
 
 extern "C" JNICALL
 void process(JNIEnv *env, jobject, jlong pointer) {
@@ -42,9 +51,10 @@ void process(JNIEnv *env, jobject, jlong pointer) {
 }
 
 static JNINativeMethod methods[] = {
-        {"init",    "(IIIIIIIII)J", (void *) init},
-        {"process", "(J)V",         (void *) process},
-        {"release", "(J)V",         (void *) release},
+        {"init",    "(IIIIIIIII)J",             (void *) init},
+        {"data",    "(J)Ljava/nio/ByteBuffer;", (void *) data},
+        {"process", "(J)V",                     (void *) process},
+        {"release", "(J)V",                     (void *) release},
 };
 
 extern "C"

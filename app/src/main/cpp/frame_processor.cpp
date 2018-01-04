@@ -6,6 +6,7 @@
 using namespace deadeye;
 
 FrameProcessor::FrameProcessor(
+        JNIEnv *env,
         int feedback_tex,
         int width,
         int height,
@@ -23,6 +24,8 @@ FrameProcessor::FrameProcessor(
 
     LOGI("FrameProcessor: size %dx%d, H %.0f-%.0f, S %.0f-%.0f, V %.0f-%.0f",
          width_, height_, min_[0], max_[0], min_[1], max_[1], min_[2], max_[2]);
+    jobject ref = env->NewDirectByteBuffer((void *) &data_, sizeof(Data));
+    byte_buffer_ = env->NewGlobalRef(ref);
 }
 
 void FrameProcessor::process() {
@@ -35,10 +38,23 @@ void FrameProcessor::process() {
 
     cv::circle(frame, cv::Point(320, 240), 40, cv::Scalar(244, 226, 66), 3);
 
+    // return data
+    for (int i = 0; i < 4; ++i) {
+        data_.values[i] = counter_++;
+    }
+
     // bind texture to sampler and update texture with annotated frame
     // on return, renderer will assume texture is bound
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, feedback_tex_);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE,
                     frame.data);
+}
+
+jobject FrameProcessor::getData() {
+    return byte_buffer_;
+}
+
+void FrameProcessor::releaseData(JNIEnv *env) {
+    env->DeleteGlobalRef(byte_buffer_);
 }

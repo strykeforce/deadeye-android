@@ -1,6 +1,5 @@
 package org.team2767.deadeye;
 
-import org.team2767.deadeye.rx.RxBus;
 import org.team2767.deadeye.rx.RxUdp;
 
 import java.net.DatagramPacket;
@@ -11,16 +10,20 @@ import java.net.SocketException;
 import java.util.Collections;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import hugo.weaving.DebugLog;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+@Singleton
 public class Network {
 
     private final static int PORT = 5555;
@@ -30,12 +33,12 @@ public class Network {
     private final static byte[] PONG = "pong".getBytes();
     private final static int PONG_SZ = PONG.length;
     private final static int PONG_LIMIT = 400;
-    private final RxBus bus;
+    private final PublishSubject<byte[]> frameSubject = PublishSubject.create();
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject
-    public Network(RxBus bus) {
-        this.bus = bus;
+    @DebugLog
+    public Network() {
     }
 
 //    private Observable
@@ -89,12 +92,24 @@ public class Network {
                 .withLatestFrom(pongs, (ping, pong) -> pong)
                 .subscribeWith(RxUdp.datagramPacketObserver());
         compositeDisposable.add(disposable);
+
+        // send frame analysis data
+        disposable = frameSubject
+                .observeOn(Schedulers.io())
+//                .subscribe(b -> Timber.d("bytes = %s", Arrays.toString(b)), Timber::e, () -> Timber.i("COMPLETE!"));
+                .withLatestFrom(addresses, (bytes, address) -> new DatagramPacket(bytes, bytes.length, address))
+                .subscribeWith(RxUdp.datagramPacketObserver());
+        compositeDisposable.add(disposable);
     }
 
     @DebugLog
     public void stop() {
         Timber.w("Stopping Network connections");
         compositeDisposable.clear();
+    }
+
+    public PublishSubject<byte[]> getFrameSubject() {
+        return frameSubject;
     }
 
     public enum ConnectionEvent {

@@ -14,10 +14,14 @@ import org.team2767.deadeye.opengl.FrameBufferHelper;
 import org.team2767.deadeye.opengl.TextureHelper;
 import org.team2767.deadeye.opengl.TextureShaderProgram;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import hugo.weaving.DebugLog;
+import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
@@ -36,20 +40,16 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     private final DisplayRectangle displayRectangle;
     private final Camera camera;
-
+    private final PublishSubject<byte[]> frameSubject;
     private TextureShaderProgram textureProgram;
     private CameraShaderProgram cameraProgram;
-
     private int cameraTextureId;
     private int feedbackTextureId;
     private int targetTextureId;
     private int targetFrameBufferId; // draws to targetTextureId
-
     private SurfaceTexture surfaceTexture;
-
     private int width;
     private int height;
-
     private FrameProcessor frameProcessor;
 
     DeadeyeRenderer(DeadeyeView deadeyeView, @Provided DisplayRectangle displayRectangle,
@@ -57,6 +57,7 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         this.deadeyeView = deadeyeView;
         this.displayRectangle = displayRectangle;
         this.camera = camera;
+        frameSubject = Injector.get().network().getFrameSubject();
     }
 
     @Override
@@ -118,6 +119,9 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         // on entry, process() will assume frame buffer to read pixels from is bound
         // on return, the feedback texture is bound to texture unit 0
         frameProcessor.process();
+//        Timber.d("bytes = %s", Arrays.toString(frameProcessor.getBytes()));
+        frameSubject.onNext(frameProcessor.getBytes());
+//        Timber.d("observers = %b", frameSubject.hasObservers());
 
         // draw framebuffer texture to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
