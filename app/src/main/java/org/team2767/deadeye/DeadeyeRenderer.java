@@ -14,13 +14,9 @@ import org.team2767.deadeye.opengl.FrameBufferHelper;
 import org.team2767.deadeye.opengl.TextureHelper;
 import org.team2767.deadeye.opengl.TextureShaderProgram;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import hugo.weaving.DebugLog;
 import io.reactivex.subjects.PublishSubject;
 import timber.log.Timber;
 
@@ -61,7 +57,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     }
 
     @Override
-    @DebugLog
     public void onSurfaceCreated(GL10 unused, EGLConfig eglConfig) {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -70,7 +65,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     }
 
     @Override
-    @DebugLog
     public void onSurfaceChanged(GL10 unused, int width, int height) {
         Timber.d("Viewport is %d x %d", width, height);
         this.width = width;

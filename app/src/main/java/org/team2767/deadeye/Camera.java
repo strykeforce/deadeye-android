@@ -37,17 +37,12 @@ public class Camera {
     private final Size PREVIEW_SIZE = new Size(WIDTH, HEIGHT);
 
     private final Context context;
-
+    private final Semaphore openCloseLock = new Semaphore(1);
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
-
     private CameraDevice cameraDevice;
     private CameraCaptureSession captureSession;
-
     private SurfaceTexture surfaceTexture;
-
-    private final Semaphore openCloseLock = new Semaphore(1);
-
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -281,7 +276,7 @@ public class Camera {
 //                        for (Map.Entry<CaptureRequest.Key, ?> setting : mSettings.camera_settings.entrySet()) {
 //                            previewRequestBuilder.set(setting.getKey(), setting.getValue());
 //                        }
-                        // FIXME: need to capture timestamp with captureCallback.onCaptureStarted
+                        // FIXME: need to capture timestamp with captureCallback.onCaptureStarted for listener below
                         captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
                         Timber.d("CameraPreviewSession has been started");
                     } catch (CameraAccessException e) {
