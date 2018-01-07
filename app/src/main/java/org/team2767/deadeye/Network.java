@@ -7,7 +7,6 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.util.Arrays;
 import java.util.Collections;
 
 import javax.inject.Inject;
@@ -34,7 +33,7 @@ public class Network {
     private final static byte[] PONG = "pong".getBytes();
     private final static int PONG_SZ = PONG.length;
     private final static int PONG_LIMIT = 400;
-    private final PublishSubject<byte[]> frameSubject = PublishSubject.create();
+    private final PublishSubject<byte[]> visionData = PublishSubject.create();
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject
@@ -95,9 +94,8 @@ public class Network {
         compositeDisposable.add(disposable);
 
         // send frame analysis data
-        disposable = frameSubject
+        disposable = visionData
                 .observeOn(Schedulers.io())
-//                .subscribe(b -> Timber.d("bytes = %s", Arrays.toString(b)), Timber::e, () -> Timber.i("COMPLETE!"));
                 .withLatestFrom(addresses, (bytes, address) -> new DatagramPacket(bytes, bytes.length, address))
                 .subscribeWith(RxUdp.datagramPacketObserver());
         compositeDisposable.add(disposable);
@@ -109,8 +107,8 @@ public class Network {
         compositeDisposable.clear();
     }
 
-    public PublishSubject<byte[]> getFrameSubject() {
-        return frameSubject;
+    public PublishSubject<byte[]> getVisionDataSubject() {
+        return visionData;
     }
 
     public enum ConnectionEvent {

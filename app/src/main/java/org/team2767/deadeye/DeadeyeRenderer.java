@@ -36,7 +36,7 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     private final DisplayRectangle displayRectangle;
     private final Camera camera;
-    private final PublishSubject<byte[]> frameSubject;
+    private final PublishSubject<byte[]> visionDataSubject;
     private TextureShaderProgram textureProgram;
     private CameraShaderProgram cameraProgram;
     private int cameraTextureId;
@@ -53,7 +53,7 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         this.deadeyeView = deadeyeView;
         this.displayRectangle = displayRectangle;
         this.camera = camera;
-        frameSubject = Injector.get().network().getFrameSubject();
+        visionDataSubject = Injector.get().network().getVisionDataSubject();
     }
 
     @Override
@@ -105,7 +105,6 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         glBindFramebuffer(GL_FRAMEBUFFER, targetFrameBufferId);
         GLES20.glViewport(0, 0, Camera.WIDTH, Camera.HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
-
         cameraProgram.useProgram();
         displayRectangle.bindAttributes(cameraProgram);
         displayRectangle.draw();
@@ -113,11 +112,10 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         // on entry, process() will assume frame buffer to read pixels from is bound
         // on return, the feedback texture is bound to texture unit 0
         frameProcessor.process();
-//        Timber.d("bytes = %s", Arrays.toString(frameProcessor.getBytes()));
+
+        // send vision data to network
         int latency = camera.latencyForFrameWithTimeStamp(surfaceTexture.getTimestamp());
-        Timber.d("latency = %d", latency);
-        frameSubject.onNext(frameProcessor.getBytes(latency));
-//        Timber.d("observers = %b", frameSubject.hasObservers());
+        visionDataSubject.onNext(frameProcessor.getBytes(latency));
 
         // draw framebuffer texture to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
