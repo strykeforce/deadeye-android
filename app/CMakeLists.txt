@@ -27,7 +27,7 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED java)
 # message(STATUS "opencv found: ${OpenCV_LIBS}")
 
 
@@ -47,8 +47,9 @@ find_library( GLES-lib GLESv2 )
 target_link_libraries( # Specifies the target library.
                        deadeye
 
-                       ${OpenCV_LIBS}
                        # Links the target library to the log library
                        # included in the NDK.
                        ${log-lib}
-                       ${GLES-lib})
+                       ${OpenCV_LIBS}
+                       ${GLES-lib}
+                       )
