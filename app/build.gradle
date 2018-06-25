@@ -14,7 +14,7 @@ android {
             cmake {
                 cppFlags "-frtti -fexceptions"
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
-                arguments "-DOpenCV_DIR=" + file(getOpenCVDir())
+                arguments "-DOpenCV_DIR=" + file(getOpenCVDir() + '/sdk/native/jni')
             }
         }
     }
@@ -27,7 +27,7 @@ android {
     sourceSets {
         main {
             // let gradle pack the shared library into apk
-            jniLibs.srcDirs = ['/opt/OpenCV-android-sdk/sdk/native/libs']
+            jniLibs.srcDirs = [getOpenCVDir() + '/sdk/native/libs']
         }
     }
     externalNativeBuild {
@@ -39,6 +39,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'armeabi-v7a', 'arm64-v8a'
+            universalApk false
+        }
+    }
 }
 
 dependencies {
@@ -49,8 +58,8 @@ dependencies {
     compileOnly 'com.google.auto.factory:auto-factory:1.0-beta5'
     annotationProcessor 'com.google.auto.factory:auto-factory:1.0-beta5'
     // https://google.github.io/dagger/
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.13'
-    implementation 'com.google.dagger:dagger:2.13'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.14.1'
+    implementation 'com.google.dagger:dagger:2.14.1'
     compileOnly 'org.glassfish:javax.annotation:10.0-b28'
     // https://github.com/JakeWharton/timber
     implementation 'com.jakewharton.timber:timber:4.6.0'
@@ -59,17 +68,20 @@ dependencies {
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
 
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
 def getOpenCVDir() {
     Properties properties = new Properties()
     properties.load(new File(rootDir.absolutePath + "/local.properties").newDataInputStream())
-    def externalModuleDir = properties.getProperty('opencv.dir', null)
-    if (externalModuleDir == null) {
+    def ocvDir = properties.getProperty('opencv.dir', null)
+    if (ocvDir == null) {
         throw new GradleException(
                 "OpenCV location not found. Define location with opencv.dir in the local.properties file!")
     }
-    return externalModuleDir
+    if (!file(ocvDir).exists()) {
+        throw new GradleException("OpenCV dir in local.properties file not found: " + ocvDir)
+    }
+    return ocvDir
 }
