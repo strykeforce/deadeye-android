@@ -76,6 +76,7 @@ public class TextureHelper {
         // done, unbind the texture
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        GLUtil.checkError();
         return textureObjectIds[0];
     }
 
@@ -95,6 +96,7 @@ public class TextureHelper {
         // done, unbind the texture
         glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
 
+        GLUtil.checkError();
         return textureObjectIds[0];
     }
 
@@ -118,6 +120,7 @@ public class TextureHelper {
         // done, unbind the texture
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        GLUtil.checkError();
         return textureObjectIds[0];
     }
 
@@ -129,6 +132,8 @@ public class TextureHelper {
             Timber.e("Could not generate a new OpenGL texture object.");
             return null;
         }
+
+        GLUtil.checkError();
         return textureObjectIds;
     }
 }

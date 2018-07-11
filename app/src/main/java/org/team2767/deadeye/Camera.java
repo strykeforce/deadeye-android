@@ -18,7 +18,7 @@ import android.util.SizeF;
 import android.view.Surface;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -32,29 +32,26 @@ import timber.log.Timber;
  */
 public class Camera {
 
-    private final static int WIDTH = 640;
-    private final static int HEIGHT = 480;
+    final static int WIDTH = 640;
+    final static int HEIGHT = 480;
+
     private final Size PREVIEW_SIZE = new Size(WIDTH, HEIGHT);
 
     private final Context context;
-
+    private final Semaphore openCloseLock = new Semaphore(1);
+    private final ConcurrentLinkedQueue<TimeStamp> captureTimeStamps = new ConcurrentLinkedQueue<>();
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
-
     private CameraDevice cameraDevice;
     private CameraCaptureSession captureSession;
-
     private SurfaceTexture surfaceTexture;
-
-    private Semaphore openCloseLock = new Semaphore(1);
-
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
-        @DebugLog
-        public void onOpened(@NonNull CameraDevice openedCameraDevice) {
+        public void onOpened(@NonNull CameraDevice cameraDevice) {
+            Timber.d("Open state callback for %s", cameraDevice);
             openCloseLock.release();
-            cameraDevice = openedCameraDevice;
+            Camera.this.cameraDevice = cameraDevice;
             createCameraPreviewSession(surfaceTexture);
         }
 
@@ -63,7 +60,7 @@ public class Camera {
             Timber.w("Disconnect state callback for %s", cameraDevice);
             openCloseLock.release();
             cameraDevice.close();
-            cameraDevice = null;
+            Camera.this.cameraDevice = null;
         }
 
         @Override
@@ -71,31 +68,60 @@ public class Camera {
             Timber.wtf("Error state callback for %s (%d)", cameraDevice, error);
             openCloseLock.release();
             cameraDevice.close();
-            cameraDevice = null;
+            Camera.this.cameraDevice = null;
         }
 
     };
 
+    /**
+     * Constructor.
+     *
+     * @param context the Application context.
+     */
     @Inject
     public Camera(Context context) {
         this.context = context;
     }
 
-    @DebugLog
-    public void start(SurfaceTexture surfaceTexture) {
+    /**
+     * Start camera capture to this SurfaceTexture.
+     *
+     * @param surfaceTexture the SurfaceTexture to use.
+     */
+    void start(SurfaceTexture surfaceTexture) {
         this.surfaceTexture = surfaceTexture;
         startBackgroundThread();
         open();
     }
 
-    @DebugLog
-    public void stop() {
+    /**
+     * Stop camera capture.
+     */
+    void stop() {
         closeCamera();
         stopBackgroundThread();
     }
 
-    @DebugLog
-    public void open() {
+    /**
+     * Find TimeStamp record using the frame metadata timestamp and calculate latency.
+     *
+     * @param captureTimeStamp the timestamp from camera capture metadata
+     * @return the latency in milliseconds
+     */
+    int latencyForFrameWithTimeStamp(long captureTimeStamp) {
+        for (; ; ) {
+            TimeStamp ts = captureTimeStamps.poll();
+            if (ts == null) {
+                Timber.w("captureTimeStamps queue was empty, setting latency = 0");
+                return 0;
+            }
+            if (ts.captureTimeStamp == captureTimeStamp) {
+                return ts.latency();
+            }
+        }
+    }
+
+    private void open() {
         CameraManager manager = context.getSystemService(CameraManager.class);
         assert manager != null;
         try {
@@ -114,6 +140,11 @@ public class Camera {
                 if (map == null) {
                     continue;
                 }
+
+                for (Size size : map.getOutputSizes(SurfaceTexture.class)) {
+                    Timber.v("preview size = %s", size);
+                }
+
 
                 float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
                 assert focalLengths != null;
@@ -136,7 +167,7 @@ public class Camera {
 
                 Size totalArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
                 assert totalArraySize != null;
-                Timber.d("Pixel array size: %s", totalArraySize.toString());
+                Timber.d("Pixel array size: %s", totalArraySize);
                 int widthPixelDimSensor = totalArraySize.getWidth();
                 double widthRatio = (double) widthPixelDimActual / (double) widthPixelDimSensor;
                 widthDim *= widthRatio;
@@ -164,9 +195,9 @@ public class Camera {
 
                 double focalLengthPixels = WIDTH * focalLengths[0] / widthDim;
 //                mView.setFocalLengthPixels(focalLengthPixels);
-                Timber.i("Camera focal length: %f pixels", focalLengthPixels);
-                Timber.i("Camera horizontal FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * widthDim / focalLengths[0])));
-                Timber.i("Camera vertical FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * heightDim / focalLengths[0])));
+                Timber.d("Camera focal length: %f pixels", focalLengthPixels);
+                Timber.d("Camera horizontal FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * widthDim / focalLengths[0])));
+                Timber.d("Camera vertical FOV %f deg", 2 * Math.toDegrees(Math.atan(.5 * heightDim / focalLengths[0])));
 
 
                 Timber.d("using camera: %s", cameraId);
@@ -235,11 +266,10 @@ public class Camera {
         }
     }
 
-
     @DebugLog
     private void createCameraPreviewSession(SurfaceTexture surfaceTexture) {
         int w = PREVIEW_SIZE.getWidth(), h = PREVIEW_SIZE.getHeight();
-        Timber.i("createCameraPreviewSession(%dx%d)", w, h);
+        Timber.d("createCameraPreviewSession(%dx%d)", w, h);
         if (w < 0 || h < 0)
             return;
         try {
@@ -270,15 +300,24 @@ public class Camera {
             cameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
 
                 @Override
-                public void onConfigured(CameraCaptureSession cameraCaptureSession) {
+                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     captureSession = cameraCaptureSession;
                     try {
+                        // TODO: set up camera exposure, etc
 //                        for (Map.Entry<CaptureRequest.Key, ?> setting : mSettings.camera_settings.entrySet()) {
 //                            previewRequestBuilder.set(setting.getKey(), setting.getValue());
 //                        }
-                        // FIXME: need to capture timestamp with captureCallback.onCaptureStarted
-                        captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
-                        Timber.i("CameraPreviewSession has been started");
+                        captureSession.setRepeatingRequest(previewRequestBuilder.build(),
+                                new CameraCaptureSession.CaptureCallback() {
+                                    @Override
+                                    public void onCaptureStarted(@NonNull CameraCaptureSession session,
+                                                                 @NonNull CaptureRequest request,
+                                                                 long timestamp, long frameNumber) {
+                                        captureTimeStamps.add(new TimeStamp(timestamp));
+                                    }
+                                },
+                                backgroundHandler);
+                        Timber.d("CameraPreviewSession has been started");
                     } catch (CameraAccessException e) {
                         Timber.e(e, "createCaptureSession failed");
                     }
@@ -286,7 +325,7 @@ public class Camera {
                 }
 
                 @Override
-                public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
+                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     Timber.e("createCameraPreviewSession failed");
                     openCloseLock.release();
                 }
@@ -295,8 +334,23 @@ public class Camera {
             Timber.e(e, "createCameraPreviewSession failed");
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while createCameraPreviewSession", e);
-        } finally {
-            //mCameraOpenCloseLock.release();
+        }
+    }
+
+    /**
+     * Correlate camera frame metadata timestamp with system time.
+     */
+    final static class TimeStamp {
+        final long captureTimeStamp;
+        final long systemTimeStamp;
+
+        TimeStamp(long frame) {
+            this.captureTimeStamp = frame;
+            systemTimeStamp = System.nanoTime();
+        }
+
+        int latency() {
+            return (int) ((System.nanoTime() - systemTimeStamp) / 1000000L); // in milliseconds
         }
     }
 }

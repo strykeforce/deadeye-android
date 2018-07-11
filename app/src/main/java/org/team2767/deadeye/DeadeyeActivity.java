@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,7 +14,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
+import org.team2767.deadeye.di.Injector;
+import org.team2767.deadeye.rx.RxBus;
+
 import hugo.weaving.DebugLog;
+import io.reactivex.Flowable;
 import timber.log.Timber;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
@@ -26,39 +29,47 @@ public class DeadeyeActivity extends AppCompatActivity
     private final static int REQUEST_CAMERA_PERMISSION = 2767;
     private final static String FRAGMENT_DIALOG = "dialog";
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
-    }
+    private Network network;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        network = Injector.get().network();
+
+        RxBus bus = Injector.get().bus();
+        Flowable<Object> connEventEmitter = bus.asFlowable();
+
+        connEventEmitter
+//                .ofType(Network.ConnectionEvent.class)
+                .subscribe(event -> Timber.i(event.toString()));
+
 
         getWindow().setFlags(FLAG_KEEP_SCREEN_ON, FLAG_KEEP_SCREEN_ON); // ...and bright
 
         setContentView(R.layout.activity_deadeye);
 
         TextView tv = findViewById(R.id.sample_text);
-        tv.setText(stringFromJNI());
+        tv.setText("OHAI");
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
         }
-
-        Timber.tag("LifeCycles");
-        Timber.d("onCreate() finished");
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    @NonNull
-    public native String stringFromJNI();
+    @Override
+    protected void onStart() {
+        super.onStart();
+        network.start();
+    }
 
-    // camera permissions
+    @Override
+    protected void onStop() {
+        network.stop();
+        super.onStop();
+    }
+// camera permissions
 
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
@@ -125,12 +136,7 @@ public class DeadeyeActivity extends AppCompatActivity
             final Activity activity = getActivity();
             return new AlertDialog.Builder(activity)
                     .setMessage(getArguments().getString(ARG_MESSAGE))
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            activity.finish();
-                        }
-                    })
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> activity.finish())
                     .create();
         }
 

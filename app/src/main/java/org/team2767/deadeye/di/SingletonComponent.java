@@ -3,6 +3,8 @@ package org.team2767.deadeye.di;
 import android.content.Context;
 
 import org.team2767.deadeye.DeadeyeRendererFactory;
+import org.team2767.deadeye.Network;
+import org.team2767.deadeye.rx.RxBus;
 import org.team2767.deadeye.opengl.CameraShaderProgram;
 import org.team2767.deadeye.opengl.TextureShaderProgram;
 
@@ -21,6 +23,10 @@ import dagger.Component;
 public interface SingletonComponent {
 
     Context appContext();
+
+    RxBus bus();
+
+    Network network();
 
     TextureShaderProgram textureShaderProgram();
 
