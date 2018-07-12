@@ -11,14 +11,12 @@ namespace deadeye {
                 JNIEnv *env,
                 int feedback_tex,
                 int width,
-                int height,
-                int hue_min,
-                int hue_max,
-                int sat_min,
-                int sat_max,
-                int val_min,
-                int val_max
+                int height
         );
+
+        void MinThreshold(int hue, int sat, int val);
+
+        void MaxThreshold(int hue, int sat, int val);
 
         void process();
 

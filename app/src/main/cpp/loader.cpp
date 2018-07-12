@@ -15,17 +15,10 @@ jlong init(
         jobject,
         jint ouputTex,
         jint width,
-        jint height,
-        jint hue_min,
-        jint hue_max,
-        jint sat_min,
-        jint sat_max,
-        jint val_min,
-        jint val_max
+        jint height
 ) {
     LOGD("Initializing native FrameProcessor");
-    FrameProcessor *fp = new FrameProcessor(env, ouputTex, width, height, hue_min, hue_max,
-                                            sat_min, sat_max, val_min, val_max);
+    FrameProcessor *fp = new FrameProcessor(env, ouputTex, width, height);
     return reinterpret_cast<jlong>(fp);
 }
 
@@ -38,23 +31,37 @@ void release(JNIEnv *env, jobject, jlong pointer) {
 }
 
 extern "C" JNICALL
-jobject data(JNIEnv *env, jobject, jlong pointer) {
+jobject data(JNIEnv *, jobject, jlong pointer) {
     FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
     return fp->getData();
 }
 
 
 extern "C" JNICALL
-void process(JNIEnv *env, jobject, jlong pointer) {
+void process(JNIEnv *, jobject, jlong pointer) {
     FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
     fp->process();
 }
 
+extern "C" JNICALL
+void minThreshold(JNIEnv *, jobject, jlong pointer, jint hue, jint sat, jint val) {
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->MinThreshold(hue, sat, val);
+}
+
+extern "C" JNICALL
+void maxThreshold(JNIEnv *, jobject, jlong pointer, jint hue, jint sat, jint val) {
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->MaxThreshold(hue, sat, val);
+}
+
 static JNINativeMethod methods[] = {
-        {"init",    "(IIIIIIIII)J",             (void *) init},
-        {"data",    "(J)Ljava/nio/ByteBuffer;", (void *) data},
-        {"process", "(J)V",                     (void *) process},
-        {"release", "(J)V",                     (void *) release},
+        {"init",         "(III)J",                   (void *) init},
+        {"data",         "(J)Ljava/nio/ByteBuffer;", (void *) data},
+        {"process",      "(J)V",                     (void *) process},
+        {"release",      "(J)V",                     (void *) release},
+        {"minThreshold", "(JIII)V",                  (void *) minThreshold},
+        {"maxThreshold", "(JIII)V",                  (void *) maxThreshold},
 };
 
 extern "C"

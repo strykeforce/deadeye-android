@@ -9,23 +9,30 @@ FrameProcessor::FrameProcessor(
         JNIEnv *env,
         int feedback_tex,
         int width,
-        int height,
-        int hue_min,
-        int hue_max,
-        int sat_min,
-        int sat_max,
-        int val_min,
-        int val_max) :
+        int height) :
         feedback_tex_(static_cast<GLuint>(feedback_tex)),
         width_(width),
         height_(height),
-        min_(hue_min, sat_min, val_min),
-        max_(hue_max, sat_max, val_max) {
+        min_(100, 0, 0),
+        max_(200, 255, 255) {
 
-    LOGI("FrameProcessor: size %dx%d, H %.0f-%.0f, S %.0f-%.0f, V %.0f-%.0f",
-         width_, height_, min_[0], max_[0], min_[1], max_[1], min_[2], max_[2]);
+    LOGI("FrameProcessor: size %dx%d", width_, height_);
     jobject ref = env->NewDirectByteBuffer((void *) &data_, sizeof(Data));
     byte_buffer_ = env->NewGlobalRef(ref);
+}
+
+void FrameProcessor::MinThreshold(jint hue, jint sat, jint val) {
+    min_[0] = hue;
+    min_[1] = sat;
+    min_[2] = val;
+    LOGD("Min Threshold: H = %f, S = %f, V = %f", min_[0], min_[1], min_[2]);
+}
+
+void FrameProcessor::MaxThreshold(jint hue, jint sat, jint val) {
+    max_[0] = hue;
+    max_[1] = sat;
+    max_[2] = val;
+    LOGD("Max Threshold: H = %f, S = %f, V = %f", max_[0], max_[1], max_[2]);
 }
 
 void FrameProcessor::process() {
@@ -36,7 +43,7 @@ void FrameProcessor::process() {
     frame.create(height_, width_, CV_8UC4);
     glReadPixels(0, 0, width_, height_, GL_RGBA, GL_UNSIGNED_BYTE, frame.data);
 
-    cv::circle(frame, cv::Point(320, 240), 40, cv::Scalar(244, 226, 66), 3);
+    cv::circle(frame, cv::Point(320, 240), 40, min_, 3);
 
     // sleep 20ms
     struct timespec tim, tim2;
