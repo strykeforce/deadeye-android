@@ -68,7 +68,7 @@ dependencies {
     implementation 'com.google.dagger:dagger:2.16'
     compileOnly 'org.glassfish:javax.annotation:10.0-b28'
     // https://github.com/JakeWharton/timber
-    implementation 'com.jakewharton.timber:timber:4.6.0'
+    implementation 'com.jakewharton.timber:timber:4.7.1'
     // https://github.com/ReactiveX/RxJava
     implementation 'io.reactivex.rxjava2:rxjava:2.1.7'
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
