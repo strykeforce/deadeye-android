@@ -70,7 +70,7 @@ dependencies {
     // https://github.com/JakeWharton/timber
     implementation 'com.jakewharton.timber:timber:4.7.1'
     // https://github.com/ReactiveX/RxJava
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.7'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
 
     testImplementation 'junit:junit:4.12'
