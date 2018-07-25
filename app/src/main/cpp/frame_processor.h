@@ -14,9 +14,11 @@ namespace deadeye {
                 int height
         );
 
-        void MinThreshold(int hue, int sat, int val);
+        void HueRange(int low, int high);
 
-        void MaxThreshold(int hue, int sat, int val);
+        void SaturationRange(int low, int high);
+
+        void ValueRange(int low, int high);
 
         void process();
 

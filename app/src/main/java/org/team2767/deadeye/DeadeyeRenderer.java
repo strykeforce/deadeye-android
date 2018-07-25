@@ -36,6 +36,7 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
     private final DisplayRectangle displayRectangle;
     private final Camera camera;
+    private final FrameProcessorFactory frameProcessorFactory;
     private final PublishSubject<byte[]> visionDataSubject;
     private TextureShaderProgram textureProgram;
     private CameraShaderProgram cameraProgram;
@@ -49,10 +50,11 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
     private FrameProcessor frameProcessor;
 
     DeadeyeRenderer(DeadeyeView deadeyeView, @Provided DisplayRectangle displayRectangle,
-                    @Provided Camera camera) {
+                    @Provided Camera camera, @Provided FrameProcessorFactory frameProcessorFactory) {
         this.deadeyeView = deadeyeView;
         this.displayRectangle = displayRectangle;
         this.camera = camera;
+        this.frameProcessorFactory = frameProcessorFactory;
         visionDataSubject = Injector.get().network().getVisionDataSubject();
     }
 
@@ -88,9 +90,7 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         if (frameProcessor != null) {
             frameProcessor.release();
         }
-        frameProcessor = new FrameProcessor(feedbackTextureId, Camera.WIDTH, Camera.HEIGHT);
-        frameProcessor.setMinThreshold(111, 11, 11);
-        frameProcessor.setMaxThreshold(211, 241, 241);
+        frameProcessor = frameProcessorFactory.create(feedbackTextureId, Camera.WIDTH, Camera.HEIGHT);
     }
 
     @Override
@@ -126,6 +126,18 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         textureProgram.useProgram();
         displayRectangle.bindAttributes(textureProgram);
         displayRectangle.draw();
+    }
+
+    public void setHueRange(int low, int high) {
+        frameProcessor.setHueRange(low, high);
+    }
+
+    public void setSaturationRange(int low, int high) {
+        frameProcessor.setSaturationRange(low, high);
+    }
+
+    public void setValueRange(int low, int high) {
+        frameProcessor.setValueRange(low, high);
     }
 
 }

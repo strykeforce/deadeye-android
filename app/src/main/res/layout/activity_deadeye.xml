@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
@@ -8,17 +8,135 @@
     tools:context="org.team2767.deadeye.DeadeyeActivity">
 
     <org.team2767.deadeye.DeadeyeView
-        android:id="@+id/deadeye_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:id="@+id/deadeyeView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/sample_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!" />
-</android.support.constraint.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/sample_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Hello World!" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/hsvButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="HSV" />
+    </LinearLayout>
+
+    <TableLayout
+        android:id="@+id/hsvLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="bottom"
+        android:orientation="vertical"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HUE" />
+
+            <com.appyvet.materialrangebar.RangeBar
+                android:id="@+id/hueRangeBar"
+                android:layout_width="580dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                app:mrb_pinMaxFont="14sp"
+                app:mrb_pinTextColor="#ACD123"
+                app:mrb_rangeBarPaddingBottom="12dp"
+                app:mrb_selectorBoundaryColor="@android:color/holo_red_light"
+                app:mrb_selectorBoundarySize="2dp"
+                app:mrb_selectorSize="10dp"
+                app:mrb_temporaryPins="false"
+                app:mrb_tickEnd="254"
+                app:mrb_tickInterval="1"
+                app:mrb_tickStart="0" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SAT" />
+
+            <com.appyvet.materialrangebar.RangeBar
+                android:id="@+id/satRangeBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                app:mrb_pinMaxFont="14sp"
+                app:mrb_pinTextColor="#ACD123"
+                app:mrb_rangeBarPaddingBottom="12dp"
+                app:mrb_selectorBoundaryColor="@android:color/holo_red_light"
+                app:mrb_selectorBoundarySize="2dp"
+                app:mrb_selectorSize="10dp"
+                app:mrb_temporaryPins="false"
+                app:mrb_tickEnd="254"
+                app:mrb_tickInterval="1"
+                app:mrb_tickStart="0" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VAL" />
+
+            <com.appyvet.materialrangebar.RangeBar
+                android:id="@+id/valRangeBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                app:mrb_pinMaxFont="14sp"
+                app:mrb_pinTextColor="#ACD123"
+                app:mrb_rangeBarPaddingBottom="12dp"
+                app:mrb_selectorBoundaryColor="@android:color/holo_red_light"
+                app:mrb_selectorBoundarySize="2dp"
+                app:mrb_selectorSize="10dp"
+                app:mrb_temporaryPins="false"
+                app:mrb_tickEnd="254"
+                app:mrb_tickInterval="1"
+                app:mrb_tickStart="0" />
+        </TableRow>
+
+    </TableLayout>
+
+</FrameLayout>

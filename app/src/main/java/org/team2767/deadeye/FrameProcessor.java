@@ -1,8 +1,14 @@
 package org.team2767.deadeye;
 
+import android.util.Pair;
+
+import com.google.auto.factory.AutoFactory;
+import com.google.auto.factory.Provided;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+@AutoFactory
 class FrameProcessor {
 
     static {
@@ -11,11 +17,21 @@ class FrameProcessor {
 
     private final long objPtr;
     private final ByteBuffer data;
+    private final Settings settings;
 
-    FrameProcessor(int outputTex, int width, int height) {
+    FrameProcessor(int outputTex, int width, int height, @Provided Settings settings) {
+        this.settings = settings;
         objPtr = init(outputTex, width, height);
         data = data(objPtr);
         data.order(ByteOrder.nativeOrder());
+
+        // initialized saved HSV threshold settings
+        Pair<Integer, Integer> range = settings.getHueRange();
+        setHueRange(range.first, range.second);
+        range = settings.getSaturationRange();
+        setSaturationRange(range.first, range.second);
+        range = settings.getValueRange();
+        setValueRange(range.first, range.second);
     }
 
     byte[] getBytes(int latency) {
@@ -26,12 +42,19 @@ class FrameProcessor {
         return dest;
     }
 
-    void setMinThreshold(int hue, int sat, int val) {
-        minThreshold(objPtr, hue, sat, val);
+    void setHueRange(int low, int high) {
+        hueRange(objPtr, low, high);
+        settings.setHueRange(low, high);
     }
 
-    void setMaxThreshold(int hue, int sat, int val) {
-        maxThreshold(objPtr, hue, sat, val);
+    void setSaturationRange(int low, int high) {
+        satRange(objPtr, low, high);
+        settings.setSaturationRange(low, high);
+    }
+
+    void setValueRange(int low, int high) {
+        valRange(objPtr, low, high);
+        settings.setValueRange(low, high);
     }
 
     void process() {
@@ -51,7 +74,9 @@ class FrameProcessor {
 
     private native void release(long cppObjPtr);
 
-    private native void minThreshold(long cppObjPtr, int hue, int sat, int val);
+    private native void hueRange(long cppObjPtr, int low, int high);
 
-    private native void maxThreshold(long cppObjPtr, int hue, int sat, int val);
+    private native void satRange(long cppObjPtr, int low, int high);
+
+    private native void valRange(long cppObjPtr, int low, int high);
 }

@@ -44,24 +44,31 @@ void process(JNIEnv *, jobject, jlong pointer) {
 }
 
 extern "C" JNICALL
-void minThreshold(JNIEnv *, jobject, jlong pointer, jint hue, jint sat, jint val) {
+void hueRange(JNIEnv *, jobject, jlong pointer, jint low, jint high) {
     FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
-    fp->MinThreshold(hue, sat, val);
+    fp->HueRange(low, high);
 }
 
 extern "C" JNICALL
-void maxThreshold(JNIEnv *, jobject, jlong pointer, jint hue, jint sat, jint val) {
+void satRange(JNIEnv *, jobject, jlong pointer, jint low, jint high) {
     FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
-    fp->MaxThreshold(hue, sat, val);
+    fp->SaturationRange(low, high);
+}
+
+extern "C" JNICALL
+void valRange(JNIEnv *, jobject, jlong pointer, jint low, jint high) {
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->ValueRange(low, high);
 }
 
 static JNINativeMethod methods[] = {
-        {"init",         "(III)J",                   (void *) init},
-        {"data",         "(J)Ljava/nio/ByteBuffer;", (void *) data},
-        {"process",      "(J)V",                     (void *) process},
-        {"release",      "(J)V",                     (void *) release},
-        {"minThreshold", "(JIII)V",                  (void *) minThreshold},
-        {"maxThreshold", "(JIII)V",                  (void *) maxThreshold},
+        {"init",     "(III)J",                   (void *) init},
+        {"data",     "(J)Ljava/nio/ByteBuffer;", (void *) data},
+        {"process",  "(J)V",                     (void *) process},
+        {"release",  "(J)V",                     (void *) release},
+        {"hueRange", "(JII)V",                   (void *) hueRange},
+        {"satRange", "(JII)V",                   (void *) satRange},
+        {"valRange", "(JII)V",                   (void *) valRange},
 };
 
 extern "C"

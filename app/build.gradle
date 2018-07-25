@@ -72,6 +72,11 @@ dependencies {
     // https://github.com/ReactiveX/RxJava
     implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
+    // http://jakewharton.github.io/butterknife/
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    // https://github.com/oli107/material-range-bar/tree/master
+    implementation 'com.appyvet:materialrangebar:1.4.3'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

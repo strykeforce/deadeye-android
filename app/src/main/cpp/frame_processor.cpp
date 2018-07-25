@@ -21,18 +21,22 @@ FrameProcessor::FrameProcessor(
     byte_buffer_ = env->NewGlobalRef(ref);
 }
 
-void FrameProcessor::MinThreshold(jint hue, jint sat, jint val) {
-    min_[0] = hue;
-    min_[1] = sat;
-    min_[2] = val;
-    LOGD("Min Threshold: H = %f, S = %f, V = %f", min_[0], min_[1], min_[2]);
+void FrameProcessor::HueRange(int low, int high) {
+    min_[0] = low;
+    max_[0] = high;
+    LOGD("HUE low = %f, high = %f", min_[0], max_[0]);
 }
 
-void FrameProcessor::MaxThreshold(jint hue, jint sat, jint val) {
-    max_[0] = hue;
-    max_[1] = sat;
-    max_[2] = val;
-    LOGD("Max Threshold: H = %f, S = %f, V = %f", max_[0], max_[1], max_[2]);
+void FrameProcessor::SaturationRange(int low, int high) {
+    min_[1] = low;
+    max_[1] = high;
+    LOGD("SAT low = %f, high = %f", min_[1], max_[1]);
+}
+
+void FrameProcessor::ValueRange(int low, int high) {
+    min_[2] = low;
+    max_[2] = high;
+    LOGD("VAL low = %f, high = %f", min_[2], max_[2]);
 }
 
 void FrameProcessor::process() {
