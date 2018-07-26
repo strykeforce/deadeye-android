@@ -11,14 +11,14 @@ namespace deadeye {
                 JNIEnv *env,
                 int feedback_tex,
                 int width,
-                int height,
-                int hue_min,
-                int hue_max,
-                int sat_min,
-                int sat_max,
-                int val_min,
-                int val_max
+                int height
         );
+
+        void HueRange(int low, int high);
+
+        void SaturationRange(int low, int high);
+
+        void ValueRange(int low, int high);
 
         void process();
 

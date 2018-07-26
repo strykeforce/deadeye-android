@@ -15,12 +15,14 @@ import timber.log.Timber;
  */
 public class DeadeyeView extends GLSurfaceView {
 
+    private final DeadeyeRenderer renderer;
+
     public DeadeyeView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         setEGLContextClientVersion(2);
 
-        DeadeyeRenderer renderer = Injector.get().deadeyeRendererFactory().create(this);
+        renderer = Injector.get().deadeyeRendererFactory().create(this);
         setRenderer(renderer);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
@@ -31,6 +33,18 @@ public class DeadeyeView extends GLSurfaceView {
 
     public DeadeyeView(Context context) {
         this(context, null);
+    }
+
+    public void setHueRange(int low, int high) {
+        renderer.setHueRange(low, high);
+    }
+
+    public void setSaturationRange(int low, int high) {
+        renderer.setSaturationRange(low, high);
+    }
+
+    public void setValueRange(int low, int high) {
+        renderer.setValueRange(low, high);
     }
 
 }

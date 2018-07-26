@@ -12,11 +12,18 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Pair;
+import android.view.View;
 import android.widget.TextView;
+
+import com.appyvet.materialrangebar.RangeBar;
 
 import org.team2767.deadeye.di.Injector;
 import org.team2767.deadeye.rx.RxBus;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 import hugo.weaving.DebugLog;
 import io.reactivex.Flowable;
 import timber.log.Timber;
@@ -28,8 +35,22 @@ public class DeadeyeActivity extends AppCompatActivity
 
     private final static int REQUEST_CAMERA_PERMISSION = 2767;
     private final static String FRAGMENT_DIALOG = "dialog";
-
+    @BindView(R.id.deadeyeView)
+    DeadeyeView deadeyeView;
+    @BindView(R.id.sample_text)
+    TextView tv;
+    @BindView(R.id.hsvLayout)
+    View hsvLayout;
+    @BindView(R.id.hueRangeBar)
+    RangeBar hueRangeBar;
+    @BindView(R.id.satRangeBar)
+    RangeBar satRangeBar;
+    @BindView(R.id.valRangeBar)
+    RangeBar valRangeBar;
     private Network network;
+    private boolean hsvControlsEnabled;
+    private boolean hsvControlsInitialized;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,14 +63,15 @@ public class DeadeyeActivity extends AppCompatActivity
 
         connEventEmitter
 //                .ofType(Network.ConnectionEvent.class)
-                .subscribe(event -> Timber.i(event.toString()));
+                .subscribe(event -> Timber.i("XXXXXXX" + event.toString()));
 
 
         getWindow().setFlags(FLAG_KEEP_SCREEN_ON, FLAG_KEEP_SCREEN_ON); // ...and bright
 
         setContentView(R.layout.activity_deadeye);
+        ButterKnife.bind(this);
+        setHsvRangeBarListeners();
 
-        TextView tv = findViewById(R.id.sample_text);
         tv.setText("OHAI");
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -62,6 +84,8 @@ public class DeadeyeActivity extends AppCompatActivity
     protected void onStart() {
         super.onStart();
         network.start();
+        enableHsvControls(false);
+
     }
 
     @Override
@@ -69,7 +93,44 @@ public class DeadeyeActivity extends AppCompatActivity
         network.stop();
         super.onStop();
     }
-// camera permissions
+
+    // buttons
+    @DebugLog
+    @OnClick(R.id.hsvButton)
+    public void hsvButton() {
+        enableHsvControls(!hsvControlsEnabled);
+    }
+
+    private void enableHsvControls(boolean enabled) {
+        hsvLayout.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        hsvControlsEnabled = enabled;
+        if (hsvControlsInitialized || !hsvControlsEnabled) return;
+
+        Settings settings = Injector.get().settings();
+        Pair<Integer, Integer> range = settings.getHueRange();
+        hueRangeBar.setRangePinsByIndices(range.first, range.second);
+        range = settings.getSaturationRange();
+        satRangeBar.setRangePinsByIndices(range.first, range.second);
+        range = settings.getValueRange();
+        valRangeBar.setRangePinsByIndices(range.first, range.second);
+        hsvControlsInitialized = true;
+    }
+
+    // HSV range bars
+    private void setHsvRangeBarListeners() {
+        hueRangeBar.setOnRangeBarChangeListener(
+                (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) -> deadeyeView.setHueRange(leftPinIndex, rightPinIndex)
+        );
+        satRangeBar.setOnRangeBarChangeListener(
+                (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) -> deadeyeView.setSaturationRange(leftPinIndex, rightPinIndex)
+        );
+        valRangeBar.setOnRangeBarChangeListener(
+                (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) -> deadeyeView.setValueRange(leftPinIndex, rightPinIndex)
+        );
+
+    }
+
+    // camera permissions
 
     private void requestCameraPermission() {
         if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
