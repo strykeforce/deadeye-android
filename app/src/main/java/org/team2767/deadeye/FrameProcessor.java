@@ -57,6 +57,14 @@ class FrameProcessor {
         settings.setValueRange(low, high);
     }
 
+    void setMonitor(Monitor monitor) {
+        monitor(objPtr, monitor.code);
+    }
+
+    void setContours(Contours contours) {
+        contours(objPtr, contours.code);
+    }
+
     void process() {
         process(objPtr);
     }
@@ -79,4 +87,26 @@ class FrameProcessor {
     private native void satRange(long cppObjPtr, int low, int high);
 
     private native void valRange(long cppObjPtr, int low, int high);
+
+    private native void monitor(long cppObjPtr, int code);
+
+    private native void contours(long cppObjPtr, int code);
+
+    public enum Monitor {
+        CAMERA(0), MASK(1);
+        final int code;
+
+        Monitor(int code) {
+            this.code = code;
+        }
+    }
+
+    public enum Contours {
+        NONE(0), TARGET(1), CONTOURS(2);
+        final int code;
+
+        Contours(int code) {
+            this.code = code;
+        }
+    }
 }

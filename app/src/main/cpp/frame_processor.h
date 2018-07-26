@@ -20,6 +20,10 @@ namespace deadeye {
 
         void ValueRange(int low, int high);
 
+        void Monitor(int code);
+
+        void Contours(int code);
+
         void process();
 
         jobject getData();
@@ -40,5 +44,7 @@ namespace deadeye {
         Data data_;
         jobject byte_buffer_;
         int counter_;
+        int monitor_ = 0;
+        int contours_ = 0;
     };
 }

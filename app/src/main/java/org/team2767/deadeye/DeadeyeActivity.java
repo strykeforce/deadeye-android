@@ -14,10 +14,13 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.appyvet.materialrangebar.RangeBar;
 
+import org.team2767.deadeye.FrameProcessor.Contours;
+import org.team2767.deadeye.FrameProcessor.Monitor;
 import org.team2767.deadeye.di.Injector;
 import org.team2767.deadeye.rx.RxBus;
 
@@ -29,6 +32,11 @@ import io.reactivex.Flowable;
 import timber.log.Timber;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+import static org.team2767.deadeye.FrameProcessor.Contours.CONTOURS;
+import static org.team2767.deadeye.FrameProcessor.Contours.NONE;
+import static org.team2767.deadeye.FrameProcessor.Contours.TARGET;
+import static org.team2767.deadeye.FrameProcessor.Monitor.CAMERA;
+import static org.team2767.deadeye.FrameProcessor.Monitor.MASK;
 
 public class DeadeyeActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
@@ -47,6 +55,10 @@ public class DeadeyeActivity extends AppCompatActivity
     RangeBar satRangeBar;
     @BindView(R.id.valRangeBar)
     RangeBar valRangeBar;
+    @BindView(R.id.monitorButton)
+    Button monitorButton;
+    @BindView(R.id.contoursButton)
+    Button contoursButton;
     private Network network;
     private boolean hsvControlsEnabled;
     private boolean hsvControlsInitialized;
@@ -71,6 +83,8 @@ public class DeadeyeActivity extends AppCompatActivity
         setContentView(R.layout.activity_deadeye);
         ButterKnife.bind(this);
         setHsvRangeBarListeners();
+        monitorButton.setText(MASK.toString());
+        contoursButton.setText(TARGET.toString());
 
         tv.setText("OHAI");
 
@@ -95,6 +109,39 @@ public class DeadeyeActivity extends AppCompatActivity
     }
 
     // buttons
+    @OnClick(R.id.monitorButton)
+    public void monitorButton(Button button) {
+        Monitor nextState = Monitor.valueOf(monitorButton.getText().toString());
+        Timber.d("monitor new state = %s", nextState);
+        deadeyeView.setMonitor(nextState);
+        switch (nextState) {
+            case CAMERA:
+                monitorButton.setText(MASK.toString());
+                break;
+            case MASK:
+                monitorButton.setText(CAMERA.toString());
+                break;
+        }
+    }
+
+    @OnClick(R.id.contoursButton)
+    public void contoursButton() {
+        Contours nextState = Contours.valueOf(contoursButton.getText().toString());
+        Timber.d("contours new state = %s", nextState);
+        deadeyeView.setContour(nextState);
+        switch (nextState) {
+            case NONE:
+                contoursButton.setText(TARGET.toString());
+                break;
+            case TARGET:
+                contoursButton.setText(CONTOURS.toString());
+                break;
+            case CONTOURS:
+                contoursButton.setText(NONE.toString());
+                break;
+        }
+    }
+
     @DebugLog
     @OnClick(R.id.hsvButton)
     public void hsvButton() {

@@ -39,6 +39,16 @@ void FrameProcessor::ValueRange(int low, int high) {
     LOGD("VAL low = %f, high = %f", min_[2], max_[2]);
 }
 
+void FrameProcessor::Monitor(int code) {
+    monitor_ = code;
+    LOGD("MONITOR state = %d", code);
+}
+
+void FrameProcessor::Contours(int code) {
+    contours_ = code;
+    LOGD("CONTOURS state = %d", code);
+}
+
 void FrameProcessor::process() {
     static cv::Mat frame;
 
