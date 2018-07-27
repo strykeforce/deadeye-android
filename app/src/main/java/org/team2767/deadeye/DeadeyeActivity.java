@@ -83,8 +83,8 @@ public class DeadeyeActivity extends AppCompatActivity
         setContentView(R.layout.activity_deadeye);
         ButterKnife.bind(this);
         setHsvRangeBarListeners();
-        monitorButton.setText(MASK.toString());
-        contoursButton.setText(TARGET.toString());
+        monitorButton.setText(CAMERA.toString());
+        contoursButton.setText(NONE.toString());
 
         tv.setText("OHAI");
 
@@ -111,35 +111,41 @@ public class DeadeyeActivity extends AppCompatActivity
     // buttons
     @OnClick(R.id.monitorButton)
     public void monitorButton(Button button) {
-        Monitor nextState = Monitor.valueOf(monitorButton.getText().toString());
-        Timber.d("monitor new state = %s", nextState);
-        deadeyeView.setMonitor(nextState);
-        switch (nextState) {
+        Monitor currentState = Monitor.valueOf(monitorButton.getText().toString());
+        Monitor nextState;
+        switch (currentState) {
             case CAMERA:
-                monitorButton.setText(MASK.toString());
+                nextState = MASK;
                 break;
             case MASK:
-                monitorButton.setText(CAMERA.toString());
+                nextState = CAMERA;
                 break;
+            default:
+                nextState = CAMERA;
         }
+        deadeyeView.setMonitor(nextState);
+        monitorButton.setText(nextState.toString());
     }
 
     @OnClick(R.id.contoursButton)
     public void contoursButton() {
-        Contours nextState = Contours.valueOf(contoursButton.getText().toString());
-        Timber.d("contours new state = %s", nextState);
-        deadeyeView.setContour(nextState);
-        switch (nextState) {
+        Contours currentState = Contours.valueOf(contoursButton.getText().toString());
+        Contours nextState;
+        switch (currentState) {
             case NONE:
-                contoursButton.setText(TARGET.toString());
+                nextState = TARGET;
                 break;
             case TARGET:
-                contoursButton.setText(CONTOURS.toString());
+                nextState = CONTOURS;
                 break;
             case CONTOURS:
-                contoursButton.setText(NONE.toString());
+                nextState = NONE;
                 break;
+            default:
+                nextState = NONE;
         }
+        deadeyeView.setContour(nextState);
+        contoursButton.setText(nextState.toString());
     }
 
     @DebugLog

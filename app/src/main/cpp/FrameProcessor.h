@@ -3,9 +3,28 @@
 #include <GLES2/gl2.h>
 #include <opencv2/core/types.hpp>
 #include <jni.h>
+#include "GripPipeline.h"
 
 namespace deadeye {
     class FrameProcessor {
+    private:
+        struct Data {
+            jint latency;
+            jint reserved; // struct 64-bit member alignment
+            jdouble values[4];
+        };
+
+
+        GLuint monitor_tex_;
+        int width_, height_;
+        cv::Mat source_;
+        grip::GripPipeline pipeline_;
+        Data data_;
+        jobject byte_buffer_;
+        int counter_;
+        int monitor_mode_ = 0;
+        int contours_mode_ = 0;
+
     public:
         FrameProcessor(
                 JNIEnv *env,
@@ -20,9 +39,9 @@ namespace deadeye {
 
         void ValueRange(int low, int high);
 
-        void Monitor(int code);
+        void MonitorMode(int code);
 
-        void Contours(int code);
+        void ContoursMode(int code);
 
         void process();
 
@@ -30,21 +49,5 @@ namespace deadeye {
 
         void releaseData(JNIEnv *env);
 
-    private:
-        struct Data {
-            jint latency;
-            jint reserved; // struct 64-bit member alignment
-            jdouble values[4];
-        };
-
-
-        GLuint feedback_tex_;
-        int width_, height_;
-        cv::Scalar min_, max_;
-        Data data_;
-        jobject byte_buffer_;
-        int counter_;
-        int monitor_ = 0;
-        int contours_ = 0;
     };
 }

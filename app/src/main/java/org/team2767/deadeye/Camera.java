@@ -300,13 +300,13 @@ public class Camera {
             cameraDevice.createCaptureSession(Collections.singletonList(surface), new CameraCaptureSession.StateCallback() {
 
                 @Override
-                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    captureSession = cameraCaptureSession;
+                public void onConfigured(@NonNull CameraCaptureSession captureSession) {
                     try {
-                        // TODO: set up camera exposure, etc
-//                        for (Map.Entry<CaptureRequest.Key, ?> setting : mSettings.camera_settings.entrySet()) {
-//                            previewRequestBuilder.set(setting.getKey(), setting.getValue());
-//                        }
+                        previewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CaptureRequest.CONTROL_MODE_OFF);
+                        previewRequestBuilder.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
+                        previewRequestBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
+                        previewRequestBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, 1 * 1_000_000L); // ns
+                        previewRequestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, .2f);
                         captureSession.setRepeatingRequest(previewRequestBuilder.build(),
                                 new CameraCaptureSession.CaptureCallback() {
                                     @Override
