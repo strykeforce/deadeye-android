@@ -47,4 +47,12 @@ public class DeadeyeView extends GLSurfaceView {
         renderer.setValueRange(low, high);
     }
 
+    public void setMonitor(FrameProcessor.Monitor monitor) {
+        renderer.setMonitor(monitor);
+    }
+
+    public void setContour(FrameProcessor.Contours contour) {
+        renderer.setContours(contour);
+    }
+
 }

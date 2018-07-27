@@ -2,7 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "frame_processor.h"
+#include "FrameProcessor.h"
 #include "log.h"
 
 using namespace deadeye;
@@ -61,6 +61,18 @@ void valRange(JNIEnv *, jobject, jlong pointer, jint low, jint high) {
     fp->ValueRange(low, high);
 }
 
+extern "C" JNICALL
+void monitor(JNIEnv *, jobject, jlong pointer, jint code) {
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->MonitorMode(code);
+}
+
+extern "C" JNICALL
+void contours(JNIEnv *, jobject, jlong pointer, jint code) {
+    FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
+    fp->ContoursMode(code);
+}
+
 static JNINativeMethod methods[] = {
         {"init",     "(III)J",                   (void *) init},
         {"data",     "(J)Ljava/nio/ByteBuffer;", (void *) data},
@@ -69,6 +81,8 @@ static JNINativeMethod methods[] = {
         {"hueRange", "(JII)V",                   (void *) hueRange},
         {"satRange", "(JII)V",                   (void *) satRange},
         {"valRange", "(JII)V",                   (void *) valRange},
+        {"monitor",  "(JI)V",                    (void *) monitor},
+        {"contours", "(JI)V",                    (void *) contours},
 };
 
 extern "C"

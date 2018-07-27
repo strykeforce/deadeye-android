@@ -34,10 +34,30 @@
             android:layout_weight="1" />
 
         <Button
-            android:id="@+id/hsvButton"
-            android:layout_width="wrap_content"
+            android:id="@+id/monitorButton"
+            android:layout_width="30dp"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/button_spacing"
             android:layout_weight="1"
+            android:background="@color/button_background"
+            android:text="mask" />
+
+        <Button
+            android:id="@+id/contoursButton"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/button_spacing"
+            android:layout_weight="1"
+            android:background="@color/button_background"
+            android:text="target" />
+
+        <Button
+            android:id="@+id/hsvButton"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/button_spacing"
+            android:layout_weight="1"
+            android:background="@color/button_background"
             android:text="HSV" />
     </LinearLayout>
 
@@ -74,7 +94,7 @@
                 app:mrb_selectorBoundarySize="2dp"
                 app:mrb_selectorSize="10dp"
                 app:mrb_temporaryPins="false"
-                app:mrb_tickEnd="254"
+                app:mrb_tickEnd="100"
                 app:mrb_tickInterval="1"
                 app:mrb_tickStart="0" />
         </TableRow>

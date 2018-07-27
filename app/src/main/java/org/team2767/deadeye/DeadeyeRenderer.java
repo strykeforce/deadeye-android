@@ -140,4 +140,12 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
         frameProcessor.setValueRange(low, high);
     }
 
+    void setMonitor(FrameProcessor.Monitor monitor) {
+        frameProcessor.setMonitor(monitor);
+    }
+
+    void setContours(FrameProcessor.Contours contours) {
+        frameProcessor.setContours(contours);
+    }
+
 }

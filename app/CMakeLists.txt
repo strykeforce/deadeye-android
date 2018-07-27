@@ -17,8 +17,9 @@ add_library( # Sets the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/cpp/loader.cpp
-             src/main/cpp/frame_processor.cpp
+             src/main/cpp/jni.cpp
+             src/main/cpp/FrameProcessor.cpp
+             src/main/cpp/GripPipeline.cpp
              )
 
 # Searches for a specified prebuilt library and stores the path as a
