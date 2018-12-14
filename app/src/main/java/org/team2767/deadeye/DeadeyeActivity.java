@@ -92,6 +92,7 @@ public class DeadeyeActivity extends AppCompatActivity
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
         }
+        Timber.d("Files dir = %s", getFilesDir());
     }
 
     @Override
