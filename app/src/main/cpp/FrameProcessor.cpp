@@ -51,7 +51,7 @@ void FrameProcessor::ContoursMode(int code) {
     LOGD("CONTOURS state = %d", contours_mode_);
 }
 
-void FrameProcessor::process() {
+void FrameProcessor::process(JNIEnv *env, jobject obj) {
 
     // allocate frame storage and load pixels from current frame buffer
     // on entry, we assume frame buffer is bound
@@ -87,7 +87,7 @@ void FrameProcessor::process() {
         case 1:
             break;
         case 2:
-            if (count++ == 0) DumpContours();
+            if (count++ == 0) DumpContours(env, obj);
             cv::drawContours(monitor, *pipeline_.GetFindContoursOutput(), -1, cv::Scalar(255, 0, 0),
                              1);
             break;
@@ -113,10 +113,12 @@ void FrameProcessor::releaseData(JNIEnv *env) {
     env->DeleteGlobalRef(byte_buffer_);
 }
 
-void FrameProcessor::DumpContours() {
+void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
     auto contours = *pipeline_.GetFindContoursOutput();
 
     json j;
+    j["name"] = "contours";
+
     for (auto contour : contours) {
         auto size = contour.size();
         if (size < 2) continue;
@@ -146,21 +148,20 @@ void FrameProcessor::DumpContours() {
             point_ary.push_back(p);
         }
         contour_obj["points"] = point_ary;
-        j.push_back(contour_obj);
+        j["contours"].push_back(contour_obj);
     }
 
-    auto file_name = "/storage/emulated/0/deadeye.json";
-    FILE *file = fopen(file_name, "w+");
-    if (file != NULL) {
-        LOGI("Contours dump file open for writing");
-        fputs(j.dump(4).c_str(), file);
-        fclose(file);
-        LOGI("DUMP JSON to %s", file_name);
-    } else
-        LOGE("Unable to open contours dump file: %s", strerror(errno));
+    // perform callback with result
 
-//    std::ofstream outfile;
-//    outfile.open("/sdcard/deadeye.json", std::ios_base::out | std::ios_base::ate);
-//    outfile << j.dump() << std::endl;
-//    LOGD("DUMP JSON out = %d", out);
+    jclass cls = env->GetObjectClass(obj);
+    jmethodID mid = env->GetMethodID(cls, "dumpContours", "(Ljava/lang/String;)V");
+    if (mid == nullptr) {
+        LOGE("dumpContours method not found");
+        return;
+    }
+
+    const char* json_str = j.dump(4).c_str();
+
+    jstring json = env->NewStringUTF(json_str);
+    env->CallVoidMethod(obj, mid, json);
 }

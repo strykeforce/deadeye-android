@@ -1,13 +1,9 @@
 package org.team2767.deadeye;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -38,222 +34,155 @@ import static org.team2767.deadeye.FrameProcessor.Monitor.CAMERA;
 import static org.team2767.deadeye.FrameProcessor.Monitor.MASK;
 
 public class DeadeyeActivity extends AppCompatActivity
-        implements ActivityCompat.OnRequestPermissionsResultCallback {
+    implements ActivityCompat.OnRequestPermissionsResultCallback {
 
-    private final static int REQUEST_CAMERA_PERMISSION = 2767;
-    private final static String FRAGMENT_DIALOG = "dialog";
-    @BindView(R.id.deadeyeView)
-    DeadeyeView deadeyeView;
-    @BindView(R.id.sample_text)
-    TextView tv;
-    @BindView(R.id.hsvLayout)
-    View hsvLayout;
-    @BindView(R.id.hueRangeBar)
-    RangeBar hueRangeBar;
-    @BindView(R.id.satRangeBar)
-    RangeBar satRangeBar;
-    @BindView(R.id.valRangeBar)
-    RangeBar valRangeBar;
-    @BindView(R.id.monitorButton)
-    Button monitorButton;
-    @BindView(R.id.contoursButton)
-    Button contoursButton;
-    private Network network;
-    private boolean hsvControlsEnabled;
-    private boolean hsvControlsInitialized;
+  @BindView(R.id.deadeyeView)
+  DeadeyeView deadeyeView;
 
+  @BindView(R.id.sample_text)
+  TextView tv;
 
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+  @BindView(R.id.hsvLayout)
+  View hsvLayout;
 
-        network = Injector.get().network();
+  @BindView(R.id.hueRangeBar)
+  RangeBar hueRangeBar;
 
-        RxBus bus = Injector.get().bus();
-        Flowable<Object> connEventEmitter = bus.asFlowable();
+  @BindView(R.id.satRangeBar)
+  RangeBar satRangeBar;
 
-        connEventEmitter
-//                .ofType(Network.ConnectionEvent.class)
-                .subscribe(event -> Timber.i("XXXXXXX" + event.toString()));
+  @BindView(R.id.valRangeBar)
+  RangeBar valRangeBar;
 
+  @BindView(R.id.monitorButton)
+  Button monitorButton;
 
-        getWindow().setFlags(FLAG_KEEP_SCREEN_ON, FLAG_KEEP_SCREEN_ON); // ...and bright
+  @BindView(R.id.contoursButton)
+  Button contoursButton;
 
-        setContentView(R.layout.activity_deadeye);
-        ButterKnife.bind(this);
-        setHsvRangeBarListeners();
-        monitorButton.setText(CAMERA.toString());
-        contoursButton.setText(NONE.toString());
+  private Network network;
+  private boolean hsvControlsEnabled;
+  private boolean hsvControlsInitialized;
 
-        tv.setText("OHAI");
+  @Override
+  protected void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestCameraPermission();
-        }
-        Timber.d("Files dir = %s", getFilesDir());
+    network = Injector.get().network();
+
+    RxBus bus = Injector.get().bus();
+    Flowable<Object> connEventEmitter = bus.asFlowable();
+
+    connEventEmitter
+        //                .ofType(Network.ConnectionEvent.class)
+        .subscribe(event -> Timber.i("XXXXXXX" + event.toString()));
+
+    getWindow().setFlags(FLAG_KEEP_SCREEN_ON, FLAG_KEEP_SCREEN_ON); // ...and bright
+
+    setContentView(R.layout.activity_deadeye);
+    ButterKnife.bind(this);
+    setHsvRangeBarListeners();
+    monitorButton.setText(CAMERA.toString());
+    contoursButton.setText(NONE.toString());
+
+    tv.setText("OHAI");
+
+    if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED) {
+      new AlertDialog.Builder(this)
+          .setMessage(
+              "Grant permissions in Settings → Apps → Deadeye → Permissions and restart app!")
+          .setPositiveButton("OK", null)
+          .create()
+          .show();
     }
+  }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        network.start();
-        enableHsvControls(false);
+  @Override
+  protected void onStart() {
+    super.onStart();
+    network.start();
+    enableHsvControls(false);
+  }
 
+  @Override
+  protected void onStop() {
+    network.stop();
+    super.onStop();
+  }
+
+  // buttons
+  @OnClick(R.id.monitorButton)
+  public void monitorButton(Button button) {
+    Monitor currentState = Monitor.valueOf(monitorButton.getText().toString());
+    Monitor nextState;
+    switch (currentState) {
+      case CAMERA:
+        nextState = MASK;
+        break;
+      case MASK:
+        nextState = CAMERA;
+        break;
+      default:
+        nextState = CAMERA;
     }
+    deadeyeView.setMonitor(nextState);
+    monitorButton.setText(nextState.toString());
+  }
 
-    @Override
-    protected void onStop() {
-        network.stop();
-        super.onStop();
+  @OnClick(R.id.contoursButton)
+  public void contoursButton() {
+    Contours currentState = Contours.valueOf(contoursButton.getText().toString());
+    Contours nextState;
+    switch (currentState) {
+      case NONE:
+        nextState = TARGET;
+        break;
+      case TARGET:
+        nextState = CONTOURS;
+        break;
+      case CONTOURS:
+        nextState = NONE;
+        break;
+      default:
+        nextState = NONE;
     }
+    deadeyeView.setContour(nextState);
+    contoursButton.setText(nextState.toString());
+  }
 
-    // buttons
-    @OnClick(R.id.monitorButton)
-    public void monitorButton(Button button) {
-        Monitor currentState = Monitor.valueOf(monitorButton.getText().toString());
-        Monitor nextState;
-        switch (currentState) {
-            case CAMERA:
-                nextState = MASK;
-                break;
-            case MASK:
-                nextState = CAMERA;
-                break;
-            default:
-                nextState = CAMERA;
-        }
-        deadeyeView.setMonitor(nextState);
-        monitorButton.setText(nextState.toString());
-    }
+  @OnClick(R.id.hsvButton)
+  public void hsvButton() {
+    enableHsvControls(!hsvControlsEnabled);
+  }
 
-    @OnClick(R.id.contoursButton)
-    public void contoursButton() {
-        Contours currentState = Contours.valueOf(contoursButton.getText().toString());
-        Contours nextState;
-        switch (currentState) {
-            case NONE:
-                nextState = TARGET;
-                break;
-            case TARGET:
-                nextState = CONTOURS;
-                break;
-            case CONTOURS:
-                nextState = NONE;
-                break;
-            default:
-                nextState = NONE;
-        }
-        deadeyeView.setContour(nextState);
-        contoursButton.setText(nextState.toString());
-    }
+  private void enableHsvControls(boolean enabled) {
+    hsvLayout.setVisibility(enabled ? View.VISIBLE : View.GONE);
+    hsvControlsEnabled = enabled;
+    if (hsvControlsInitialized || !hsvControlsEnabled) return;
 
-    @OnClick(R.id.hsvButton)
-    public void hsvButton() {
-        enableHsvControls(!hsvControlsEnabled);
-    }
+    Settings settings = Injector.get().settings();
+    Pair<Integer, Integer> range = settings.getHueRange();
+    hueRangeBar.setRangePinsByIndices(range.first, range.second);
+    range = settings.getSaturationRange();
+    satRangeBar.setRangePinsByIndices(range.first, range.second);
+    range = settings.getValueRange();
+    valRangeBar.setRangePinsByIndices(range.first, range.second);
+    hsvControlsInitialized = true;
+  }
 
-    private void enableHsvControls(boolean enabled) {
-        hsvLayout.setVisibility(enabled ? View.VISIBLE : View.GONE);
-        hsvControlsEnabled = enabled;
-        if (hsvControlsInitialized || !hsvControlsEnabled) return;
-
-        Settings settings = Injector.get().settings();
-        Pair<Integer, Integer> range = settings.getHueRange();
-        hueRangeBar.setRangePinsByIndices(range.first, range.second);
-        range = settings.getSaturationRange();
-        satRangeBar.setRangePinsByIndices(range.first, range.second);
-        range = settings.getValueRange();
-        valRangeBar.setRangePinsByIndices(range.first, range.second);
-        hsvControlsInitialized = true;
-    }
-
-    // HSV range bars
-    private void setHsvRangeBarListeners() {
-        hueRangeBar.setOnRangeBarChangeListener(
-                (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) -> deadeyeView.setHueRange(leftPinIndex, rightPinIndex)
-        );
-        satRangeBar.setOnRangeBarChangeListener(
-                (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) -> deadeyeView.setSaturationRange(leftPinIndex, rightPinIndex)
-        );
-        valRangeBar.setOnRangeBarChangeListener(
-                (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) -> deadeyeView.setValueRange(leftPinIndex, rightPinIndex)
-        );
-
-    }
-
-    // camera permissions
-
-    private void requestCameraPermission() {
-        if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            // user said "nope" or revoked permissions in Settings, so explain...
-            new ConfirmationDialog().show(getFragmentManager(), FRAGMENT_DIALOG);
-        } else {
-            // standard permission dialog
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-            if (grantResults.length != 1 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                ErrorDialog.newInstance(getString(R.string.denied_permission))
-                        .show(getFragmentManager(), FRAGMENT_DIALOG);
-            }
-        } else {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        }
-
-    }
-
-    // explain that we really do need the camera
-    public static class ConfirmationDialog extends DialogFragment {
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final Activity activity = getActivity();
-            return new AlertDialog.Builder(activity)
-                    .setMessage(R.string.request_permission)
-                    .setPositiveButton(android.R.string.ok,
-                            (dialog, which) -> activity.requestPermissions(
-                                    new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION))
-                    .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
-                        if (activity != null) {
-                            activity.finish();
-                        }
-                    })
-                    .create();
-        }
-    }
-
-    /**
-     * Shows an error message dialog.
-     */
-    public static class ErrorDialog extends DialogFragment {
-
-        private static final String ARG_MESSAGE = "message";
-
-        public static ErrorDialog newInstance(String message) {
-            ErrorDialog dialog = new ErrorDialog();
-            Bundle args = new Bundle();
-            args.putString(ARG_MESSAGE, message);
-            dialog.setArguments(args);
-            return dialog;
-        }
-
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            final Activity activity = getActivity();
-            return new AlertDialog.Builder(activity)
-                    .setMessage(getArguments().getString(ARG_MESSAGE))
-                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> activity.finish())
-                    .create();
-        }
-
-    }
-
-
+  // HSV range bars
+  private void setHsvRangeBarListeners() {
+    hueRangeBar.setOnRangeBarChangeListener(
+        (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) ->
+            deadeyeView.setHueRange(leftPinIndex, rightPinIndex));
+    satRangeBar.setOnRangeBarChangeListener(
+        (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) ->
+            deadeyeView.setSaturationRange(leftPinIndex, rightPinIndex));
+    valRangeBar.setOnRangeBarChangeListener(
+        (rangeBar, leftPinIndex, rightPinIndex, leftPinValue, rightPinValue) ->
+            deadeyeView.setValueRange(leftPinIndex, rightPinIndex));
+  }
 }

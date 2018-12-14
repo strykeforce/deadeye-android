@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Deadeye</string>
-    <string name="request_permission">I can haz the camera?</string>
-    <string name="denied_permission">No camera? Bye!</string>
+    <string name="unknow_message">Not sure how I got here.</string>
+    <string name="camera_request_permission">I can haz the camera?</string>
+    <string name="camera_denied_permission">No camera? Bye!</string>
+    <string name="write_request_permission">Plz let me save contours.</string>
+    <string name="write_denied_permission">No write permission? No contours!</string>
 </resources>

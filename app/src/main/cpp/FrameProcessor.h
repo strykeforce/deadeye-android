@@ -25,7 +25,7 @@ namespace deadeye {
         int monitor_mode_ = 0;
         int contours_mode_ = 0;
 
-        void DumpContours();
+        void DumpContours(JNIEnv *env, jobject obj);
 
     public:
         FrameProcessor(
@@ -45,7 +45,7 @@ namespace deadeye {
 
         void ContoursMode(int code);
 
-        void process();
+        void process(JNIEnv *env, jobject obj);
 
         jobject getData();
 

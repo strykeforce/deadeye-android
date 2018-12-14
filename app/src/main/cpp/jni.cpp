@@ -38,9 +38,9 @@ jobject data(JNIEnv *, jobject, jlong pointer) {
 
 
 extern "C" JNICALL
-void process(JNIEnv *, jobject, jlong pointer) {
+void process(JNIEnv *env, jobject obj, jlong pointer) {
     FrameProcessor *fp = reinterpret_cast<FrameProcessor *>(pointer);
-    fp->process();
+    fp->process(env, obj);
 }
 
 extern "C" JNICALL
