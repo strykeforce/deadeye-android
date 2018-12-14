@@ -1,6 +1,6 @@
 package org.team2767.deadeye.opengl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
