@@ -69,7 +69,7 @@ namespace grip {
 
         std::vector<std::vector<cv::Point> > *GetFilterContoursOutput();
 
-        // added manually
+        // MANUALLY ADDED - hsvThreshold public member vars
         double hsvThresholdHue[2];
         double hsvThresholdSaturation[2];
         double hsvThresholdValue[2];

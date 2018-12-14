@@ -12,6 +12,7 @@ namespace grip {
         //Step HSV_Threshold0:
         //input
         cv::Mat hsvThresholdInput = source0;
+        // MANUALLY UPDATED - move hsvThreshold local vars to public members
         hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue,
                      this->hsvThresholdOutput);
         //Step Find_Contours0:
@@ -129,7 +130,7 @@ namespace grip {
      */
     void GripPipeline::hsvThreshold(cv::Mat &input, double hue[], double sat[], double val[],
                                     cv::Mat &out) {
-        cv::cvtColor(input, out, cv::COLOR_BGR2HSV);
+        cv::cvtColor(input, out, cv::COLOR_RGBA2BGR); // THIS IS MANUALLY CHANGED
         cv::inRange(out, cv::Scalar(hue[0], sat[0], val[0]), cv::Scalar(hue[1], sat[1], val[1]),
                     out);
     }
