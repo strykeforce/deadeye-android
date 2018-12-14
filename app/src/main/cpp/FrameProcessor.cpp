@@ -1,9 +1,11 @@
 #include <opencv2/imgproc.hpp>
+#include <fstream>
 #include "FrameProcessor.h"
-
+#include "json.hpp"
 #include "log.h"
 
 using namespace deadeye;
+using json = nlohmann::json;
 
 FrameProcessor::FrameProcessor(
         JNIEnv *env,
@@ -57,7 +59,8 @@ void FrameProcessor::process() {
 
     pipeline_.Process(source_);
 
-    // return data
+    // Put results in data_ struct for return. Java calling method FrameProcessor getData
+    // will overwrite the latency field with its own computed value.
     data_.latency = 0;
     for (int i = 0; i < 4; ++i) {
         data_.values[i] = counter_++;
@@ -76,12 +79,15 @@ void FrameProcessor::process() {
             LOGE("Unrecognized monitor mode = %d", monitor_mode_);
     }
 
+    static int count = 0;
     switch (contours_mode_) {
         case 0:
+            count = 0;
             break;
         case 1:
             break;
         case 2:
+            if (count++ == 0) DumpContours();
             cv::drawContours(monitor, *pipeline_.GetFindContoursOutput(), -1, cv::Scalar(255, 0, 0),
                              1);
             break;
@@ -97,10 +103,64 @@ void FrameProcessor::process() {
                     monitor.data);
 }
 
+// Return the ByteBuffer that was initialized in our constructor. This will be reused to pass
+// data back to the FrameProcessor class.
 jobject FrameProcessor::getData() {
     return byte_buffer_;
 }
 
 void FrameProcessor::releaseData(JNIEnv *env) {
     env->DeleteGlobalRef(byte_buffer_);
+}
+
+void FrameProcessor::DumpContours() {
+    auto contours = *pipeline_.GetFindContoursOutput();
+
+    json j;
+    for (auto contour : contours) {
+        auto size = contour.size();
+        if (size < 2) continue;
+
+        json contour_obj;
+
+        contour_obj["size"] = contour.size();
+        auto area = cv::contourArea(contour);
+        contour_obj["area"] = area;
+        contour_obj["arclength"] = cv::arcLength(contour, true);
+        auto bb = cv::boundingRect(contour);
+        contour_obj["width"] = bb.width;
+        contour_obj["height"] = bb.height;
+        contour_obj["ratio"] = bb.width / bb.height;
+
+        std::vector<cv::Point> hull;
+        cv::convexHull(cv::Mat(contour, true), hull);
+        auto solid = 100 * area / cv::contourArea(hull);
+        contour_obj["solid"] = solid;
+
+        json point_ary;
+
+        for (cv::Point point : contour) {
+            json p;
+            p["x"] = point.x;
+            p["y"] = point.y;
+            point_ary.push_back(p);
+        }
+        contour_obj["points"] = point_ary;
+        j.push_back(contour_obj);
+    }
+
+    auto file_name = "/storage/emulated/0/deadeye.json";
+    FILE *file = fopen(file_name, "w+");
+    if (file != NULL) {
+        LOGI("Contours dump file open for writing");
+        fputs(j.dump(4).c_str(), file);
+        fclose(file);
+        LOGI("DUMP JSON to %s", file_name);
+    } else
+        LOGE("Unable to open contours dump file: %s", strerror(errno));
+
+//    std::ofstream outfile;
+//    outfile.open("/sdcard/deadeye.json", std::ios_base::out | std::ios_base::ate);
+//    outfile << j.dump() << std::endl;
+//    LOGD("DUMP JSON out = %d", out);
 }

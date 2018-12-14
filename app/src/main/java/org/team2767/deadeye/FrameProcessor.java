@@ -16,7 +16,7 @@ class FrameProcessor {
     }
 
     private final long objPtr;
-    private final ByteBuffer data;
+    private final ByteBuffer data; // direct ByteBuffer, created in native FrameProcessor ctor
     private final Settings settings;
 
     FrameProcessor(int outputTex, int width, int height, @Provided Settings settings) {
@@ -34,6 +34,7 @@ class FrameProcessor {
         setValueRange(range.first, range.second);
     }
 
+    // After calling process(), the data ByteBuffer contains results.
     byte[] getBytes(int latency) {
         data.putInt(0, latency);
         data.rewind();

@@ -27,7 +27,6 @@ import org.team2767.deadeye.rx.RxBus;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import hugo.weaving.DebugLog;
 import io.reactivex.Flowable;
 import timber.log.Timber;
 
@@ -149,7 +148,6 @@ public class DeadeyeActivity extends AppCompatActivity
         contoursButton.setText(nextState.toString());
     }
 
-    @DebugLog
     @OnClick(R.id.hsvButton)
     public void hsvButton() {
         enableHsvControls(!hsvControlsEnabled);
