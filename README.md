@@ -2,6 +2,11 @@
 
 Stryke Force Vision Application
 
+## Dependencies
+
+- [JSON for Modern C++](https://github.com/nlohmann/json).
+- OpenCV
+
 ## Prepare a new Nexus 5X
 
 1.  Unlock phone and enable ADB.
@@ -57,3 +62,4 @@ Next, holding the volume down key, and keep it held down while you press the pow
 -   <http://www.androidtipsandhacks.com/root/twrp-the-complete-guide-to-using-recovery-on-android/>
 -   <http://www.androidtipsandhacks.com/root/fastboot-mac-linux-recovery/>
 -   <https://www.xda-developers.com/how-to-install-custom-rom-android/>
+-   <https://stackoverflow.com/questions/1992953/file-operations-in-android-ndk>

@@ -1,12 +1,19 @@
 package org.team2767.deadeye;
 
+import android.os.Environment;
 import android.util.Pair;
 
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import timber.log.Timber;
 
 @AutoFactory
 class FrameProcessor {
@@ -16,7 +23,7 @@ class FrameProcessor {
     }
 
     private final long objPtr;
-    private final ByteBuffer data;
+    private final ByteBuffer data; // direct ByteBuffer, created in native FrameProcessor ctor
     private final Settings settings;
 
     FrameProcessor(int outputTex, int width, int height, @Provided Settings settings) {
@@ -34,6 +41,7 @@ class FrameProcessor {
         setValueRange(range.first, range.second);
     }
 
+    // After calling process(), the data ByteBuffer contains results.
     byte[] getBytes(int latency) {
         data.putInt(0, latency);
         data.rewind();
@@ -55,6 +63,27 @@ class FrameProcessor {
     void setValueRange(int low, int high) {
         valRange(objPtr, low, high);
         settings.setValueRange(low, high);
+    }
+
+    private void dumpContours(String json) {
+        Timber.d("CONTOURS:\n" + json);
+
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            Timber.e("External media is not available for dumping contours, state: %s",
+                    Environment.getExternalStorageState());
+            return;
+        }
+
+        File out = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "deadeye.json");
+
+        try (Writer writer = new FileWriter(out)) {
+            writer.write(json);
+        } catch (IOException e) {
+            Timber.e(e);
+            return;
+        }
+        Timber.i("Contours written to: %s", out);
     }
 
     void setMonitor(Monitor monitor) {

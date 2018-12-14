@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
 /**
@@ -266,7 +265,6 @@ public class Camera {
         }
     }
 
-    @DebugLog
     private void createCameraPreviewSession(SurfaceTexture surfaceTexture) {
         int w = PREVIEW_SIZE.getWidth(), h = PREVIEW_SIZE.getHeight();
         Timber.d("createCameraPreviewSession(%dx%d)", w, h);

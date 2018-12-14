@@ -12,7 +12,6 @@ import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import hugo.weaving.DebugLog;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
@@ -37,7 +36,6 @@ public class Network {
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject
-    @DebugLog
     public Network() {
     }
 
@@ -60,7 +58,6 @@ public class Network {
         return Collections.emptyList();
     }
 
-    @DebugLog
     public void start() {
         Timber.i("Starting Network connections");
 
@@ -101,7 +98,6 @@ public class Network {
         compositeDisposable.add(disposable);
     }
 
-    @DebugLog
     public void stop() {
         Timber.w("Stopping Network connections");
         compositeDisposable.clear();
