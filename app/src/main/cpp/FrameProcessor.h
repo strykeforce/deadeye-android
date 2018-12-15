@@ -9,8 +9,8 @@ namespace deadeye {
     class FrameProcessor {
     private:
         struct Data {
+            jint type;
             jint latency;
-            jint reserved; // struct 64-bit member alignment
             jdouble values[4];
         };
 
@@ -21,7 +21,7 @@ namespace deadeye {
         grip::GripPipeline pipeline_;
         Data data_;
         jobject byte_buffer_;
-        int counter_;
+        double counter_ = 0.0;
         int monitor_mode_ = 0;
         int contours_mode_ = 0;
 

@@ -116,7 +116,9 @@ public class DeadeyeRenderer implements GLSurfaceView.Renderer, SurfaceTexture.O
 
         // send vision data to network
         int latency = camera.latencyForFrameWithTimeStamp(surfaceTexture.getTimestamp());
-        visionDataSubject.onNext(frameProcessor.getBytes(latency));
+        byte[] frameData = frameProcessor.getBytes(latency);
+        FrameProcessor.dumpFrameData(frameData);
+        visionDataSubject.onNext(frameData);
 
         // draw framebuffer texture to screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
