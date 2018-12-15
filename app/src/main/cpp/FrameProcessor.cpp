@@ -61,6 +61,7 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
 
     // Put results in data_ struct for return. Java calling method FrameProcessor getData
     // will overwrite the latency field with its own computed value.
+    data_.type = 0;
     data_.latency = 0;
     for (int i = 0; i < 4; ++i) {
         data_.values[i] = counter_++;
