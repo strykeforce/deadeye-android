@@ -23,11 +23,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import com.appyvet.materialrangebar.RangeBar;
-import io.reactivex.Flowable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import org.team2767.deadeye.FrameProcessor.Contours;
 import org.team2767.deadeye.FrameProcessor.Monitor;
 import org.team2767.deadeye.di.Injector;
-import org.team2767.deadeye.rx.RxBus;
 import timber.log.Timber;
 
 public class DeadeyeActivity extends AppCompatActivity
@@ -67,13 +67,6 @@ public class DeadeyeActivity extends AppCompatActivity
 
     network = Injector.get().network();
 
-    RxBus bus = Injector.get().bus();
-    Flowable<Object> connEventEmitter = bus.asFlowable();
-
-    connEventEmitter
-        //                .ofType(Network.ConnectionEvent.class)
-        .subscribe(event -> Timber.i("XXXXXXX" + event.toString()));
-
     getWindow().setFlags(FLAG_KEEP_SCREEN_ON, FLAG_KEEP_SCREEN_ON); // ...and bright
 
     setContentView(R.layout.activity_deadeye);
@@ -82,7 +75,16 @@ public class DeadeyeActivity extends AppCompatActivity
     monitorButton.setText(CAMERA.toString());
     contoursButton.setText(NONE.toString());
 
-    tv.setText("OHAI");
+    Disposable disposable =
+        Injector.get()
+            .bus()
+            .asFlowable()
+            .ofType(Network.ConnectionEvent.class)
+            .map(Object::toString)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(tv::setText, Timber::e);
+
+    //    tv.setText("OHAI");
 
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED
