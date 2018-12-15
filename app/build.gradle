@@ -12,9 +12,10 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
-                cppFlags "-frtti -fexceptions"
-                abiFilters 'armeabi-v7a', 'arm64-v8a'
-                arguments "-DOpenCV_DIR=" + file(getOpenCVDir() + '/sdk/native/jni')
+                cppFlags "-std=c++11 -frtti -fexceptions"
+                arguments "-DANDROID_ARM_NEON=TRUE",
+                        "-DANDROID_CPP_FEATURES=rtti exceptions",
+                        "-DOpenCV_DIR=" + file(getOpenCVDir() + '/sdk/native/jni')
             }
         }
     }
@@ -50,7 +51,7 @@ android {
         abi {
             enable true
             reset()
-            include 'armeabi-v7a', 'arm64-v8a'
+            include 'arm64-v8a' // , 'x86', 'x86_64', 'armeabi-v7a'
             universalApk false
         }
     }
