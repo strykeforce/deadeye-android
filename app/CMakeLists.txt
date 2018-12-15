@@ -28,7 +28,7 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_package(OpenCV REQUIRED java)
+find_package(OpenCV 3.4 REQUIRED java)
 # message(STATUS "opencv found: ${OpenCV_LIBS}")
 
 

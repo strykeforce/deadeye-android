@@ -84,8 +84,6 @@ public class DeadeyeActivity extends AppCompatActivity
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(tv::setText, Timber::e);
 
-    //    tv.setText("OHAI");
-
     if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED
         || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
