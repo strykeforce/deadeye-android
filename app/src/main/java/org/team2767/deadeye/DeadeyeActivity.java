@@ -1,37 +1,34 @@
 package org.team2767.deadeye;
 
-import android.Manifest;
-import android.app.AlertDialog;
-import android.content.pm.PackageManager;
-import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.appcompat.app.AppCompatActivity;
-import android.util.Pair;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-
-import com.appyvet.materialrangebar.RangeBar;
-
-import org.team2767.deadeye.FrameProcessor.Contours;
-import org.team2767.deadeye.FrameProcessor.Monitor;
-import org.team2767.deadeye.di.Injector;
-import org.team2767.deadeye.rx.RxBus;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import io.reactivex.Flowable;
-import timber.log.Timber;
-
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 import static org.team2767.deadeye.FrameProcessor.Contours.CONTOURS;
 import static org.team2767.deadeye.FrameProcessor.Contours.NONE;
 import static org.team2767.deadeye.FrameProcessor.Contours.TARGET;
 import static org.team2767.deadeye.FrameProcessor.Monitor.CAMERA;
 import static org.team2767.deadeye.FrameProcessor.Monitor.MASK;
+
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.util.Pair;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import com.appyvet.materialrangebar.RangeBar;
+import io.reactivex.Flowable;
+import org.team2767.deadeye.FrameProcessor.Contours;
+import org.team2767.deadeye.FrameProcessor.Monitor;
+import org.team2767.deadeye.di.Injector;
+import org.team2767.deadeye.rx.RxBus;
+import timber.log.Timber;
 
 public class DeadeyeActivity extends AppCompatActivity
     implements ActivityCompat.OnRequestPermissionsResultCallback {

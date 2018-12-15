@@ -1,7 +1,13 @@
 package org.team2767.deadeye;
 
-import org.team2767.deadeye.rx.RxUdp;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -10,19 +16,10 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Collections;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import io.reactivex.Maybe;
-import io.reactivex.Observable;
-import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
-import io.reactivex.subjects.PublishSubject;
+import org.team2767.deadeye.rx.RxUdp;
 import timber.log.Timber;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Singleton
 public class Network {
@@ -48,30 +45,9 @@ public class Network {
   @Inject
   public Network() {}
 
-  //  private static void debugDatagramPacket(DatagramPacket p) {
-  //    byte[] b = Arrays.copyOf(p.getData(), p.getLength());
-  //    debugByteArray(b);
-  //  }
-  //
-  //  private static void debugByteBuffer(ByteBuffer b) {
-  //    b.rewind();
-  //    byte[] bytes = new byte[b.remaining()];
-  //    b.get(bytes);
-  //    debugByteArray(bytes);
-  //  }
-  //
-  //  private static void debugByteArray(byte[] b) {
-  //    Timber.d("Bytes = %s", Arrays.toString(b));
-  //  }
-
-  //    private Observable
-
   private static boolean isPing(DatagramPacket packet) {
     byte[] data = packet.getData();
-    //    Timber.d("type = %s, PING = %s", new String(Arrays.copyOf(data, 4)),
-    // Integer.toString(TYPE_PING));
-    //    return type == TYPE_PING;
-    for (int i = 0; i < SIZE; i++) if (data[i] != PING[i]) return false;
+    for (int i = 0; i < SIZE; i++) if (data[i] != PING[i]) return false; // LITTLE_ENDIAN
     return true;
   }
 
@@ -115,8 +91,6 @@ public class Network {
     // send pong when ping arrives
     disposable =
         packets
-            //            .doOnNext(p -> Timber.d("Packet = %s", new
-            // String(Arrays.copyOf(p.getData(), 4))))
             .filter(Network::isPing)
             .withLatestFrom(pongs, (ping, pong) -> pong)
             .subscribeWith(RxUdp.datagramPacketObserver());

@@ -2,18 +2,13 @@ package org.team2767.deadeye;
 
 import android.os.Environment;
 import android.util.Pair;
-
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-
 import timber.log.Timber;
 
 @AutoFactory
@@ -52,7 +47,6 @@ class FrameProcessor {
     for (int i = 0; i < 4; i++) {
       data[i] = buffer.getDouble();
     }
-    Timber.d("type = %s, latency = %s, data = %s", type, latency, Arrays.toString(data));
   }
 
   // After calling process(), the data ByteBuffer contains results.

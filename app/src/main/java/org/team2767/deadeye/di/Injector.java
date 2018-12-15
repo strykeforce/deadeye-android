@@ -1,13 +1,11 @@
 package org.team2767.deadeye.di;
 
-/**
- * Convenience class to get global singleton Dagger component.
- */
+/** Convenience class to get global singleton Dagger component. */
 public class Injector {
 
-    private Injector() {}
+  private Injector() {}
 
-    public static SingletonComponent get() {
-        return DeadeyeApplication.INSTANCE.component;
-    }
+  public static SingletonComponent get() {
+    return DeadeyeApplication.INSTANCE.component;
+  }
 }
