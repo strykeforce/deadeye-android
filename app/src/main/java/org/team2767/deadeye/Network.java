@@ -1,12 +1,16 @@
 package org.team2767.deadeye;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.team2767.deadeye.Network.ConnectionEvent.CONNECTED;
+import static org.team2767.deadeye.Network.ConnectionEvent.DISCONNECTED;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.schedulers.Timed;
 import io.reactivex.subjects.PublishSubject;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
@@ -18,6 +22,7 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import org.team2767.deadeye.rx.RxBus;
 import org.team2767.deadeye.rx.RxUdp;
 import timber.log.Timber;
 
@@ -38,12 +43,16 @@ public class Network {
   private static final byte[] PONG =
       ByteBuffer.allocate(4).order(Network.BYTE_ORDER).putInt(TYPE_PONG).array();
   private static final int SIZE = 4;
-  private static final int PONG_LIMIT = 400;
+  private static final int PING_INTERVAL = 100;
+  private static final int PING_LIMIT = 400;
   private final PublishSubject<byte[]> visionData = PublishSubject.create();
   private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+  private final RxBus rxBus;
 
   @Inject
-  public Network() {}
+  public Network(RxBus rxBus) {
+    this.rxBus = rxBus;
+  }
 
   private static boolean isPing(DatagramPacket packet) {
     byte[] data = packet.getData();
@@ -88,12 +97,30 @@ public class Network {
     // create pongs to send to remote address
     Observable<DatagramPacket> pongs = addresses.map(a -> new DatagramPacket(PONG, SIZE, a));
 
+    // stream pings
+    Observable<DatagramPacket> pings = packets.filter(Network::isPing);
+
     // send pong when ping arrives
     disposable =
-        packets
-            .filter(Network::isPing)
+        pings
             .withLatestFrom(pongs, (ping, pong) -> pong)
             .subscribeWith(RxUdp.datagramPacketObserver());
+    compositeDisposable.add(disposable);
+
+    // monitor pings
+    Observable<Timed<Long>> heartbeat =
+        Observable.interval(PING_INTERVAL / 2, MILLISECONDS).timestamp(MILLISECONDS);
+
+    disposable =
+        Observable.combineLatest(
+                pings.timestamp(MILLISECONDS), heartbeat, (p, h) -> h.time() - p.time())
+            .distinctUntilChanged(time -> time > PING_LIMIT)
+            .map(time -> time > PING_LIMIT ? DISCONNECTED : CONNECTED)
+            .startWith(DISCONNECTED)
+            .subscribe(rxBus::send, Timber::e);
+    compositeDisposable.add(disposable);
+
+    disposable = rxBus.asFlowable().map(Object::toString).subscribe(Timber::d, Timber::e);
     compositeDisposable.add(disposable);
 
     // send frame analysis data
