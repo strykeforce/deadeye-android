@@ -80,15 +80,19 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
             LOGE("Unrecognized monitor mode = %d", monitor_mode_);
     }
 
-    static int count = 0;
+    static bool trigger_contour_dump = true;
     switch (contours_mode_) {
         case 0:
-            count = 0;
+            trigger_contour_dump = true;
             break;
         case 1:
             break;
         case 2:
-            if (count++ == 0) DumpContours(env, obj);
+            // dump contours once upon entering mode 2
+            if (trigger_contour_dump) {
+                DumpContours(env, obj);
+                trigger_contour_dump = false;
+            }
             cv::drawContours(monitor, *pipeline_.GetFindContoursOutput(), -1, cv::Scalar(255, 0, 0),
                              1);
             break;

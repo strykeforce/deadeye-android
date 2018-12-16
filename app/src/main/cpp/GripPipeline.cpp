@@ -8,10 +8,10 @@ namespace grip {
 /**
 * Runs an iteration of the pipeline and updates outputs.
 */
-    void GripPipeline::Process(cv::Mat &source0) {
+    void GripPipeline::Process(cv::Mat &source) {
         //Step HSV_Threshold0:
         //input
-        cv::Mat hsvThresholdInput = source0;
+        cv::Mat hsvThresholdInput = source;
         // MANUALLY UPDATED - move hsvThreshold local vars to public members
         hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue,
                      this->hsvThresholdOutput);

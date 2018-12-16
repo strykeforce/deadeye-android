@@ -56,7 +56,7 @@ namespace grip {
     public:
         GripPipeline();
 
-        void Process(cv::Mat &source0);
+        void Process(cv::Mat &source);
 
         cv::Mat *GetBlurOutput();
 
