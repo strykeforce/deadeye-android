@@ -39,6 +39,9 @@ namespace grip {
                        filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices,
                        filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio,
                        this->filterContoursOutput);
+        for (int i = 0; i < 4; ++i) {
+            values[i] = i + 1.0;
+        }
     }
 
 /**
@@ -181,7 +184,6 @@ namespace grip {
         cv::findContours(input, contours, hierarchy, mode, method);
     }
 
-
     /**
      * Filters through contours.
      * @param inputContours is the input vector of contours.
@@ -222,7 +224,6 @@ namespace grip {
             output.push_back(contour);
         }
     }
-
 
 } // end grip namespace
 

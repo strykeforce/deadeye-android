@@ -64,7 +64,7 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
     data_.type = 0;
     data_.latency = 0;
     for (int i = 0; i < 4; ++i) {
-        data_.values[i] = counter_++;
+        data_.values[i] = pipeline_.values[i];
     }
 
     cv::Mat monitor;
@@ -161,7 +161,7 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
         return;
     }
 
-    const char* json_str = j.dump(4).c_str();
+    const char *json_str = j.dump(4).c_str();
 
     jstring json = env->NewStringUTF(json_str);
     env->CallVoidMethod(obj, mid, json);

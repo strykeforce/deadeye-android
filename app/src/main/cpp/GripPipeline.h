@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <math.h>
+#include <jni.h>
 
 namespace grip {
 
@@ -73,7 +74,7 @@ namespace grip {
         double hsvThresholdHue[2];
         double hsvThresholdSaturation[2];
         double hsvThresholdValue[2];
-
+        jdouble values[4];
     };
 
 
