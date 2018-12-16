@@ -1,11 +1,17 @@
 #include <opencv2/imgproc.hpp>
 #include <fstream>
+#include <algorithm>
 #include "FrameProcessor.h"
 #include "json.hpp"
 #include "log.h"
 
 using namespace deadeye;
 using json = nlohmann::json;
+
+namespace {
+    const std::size_t CONTOUR_DUMP_COUNT_MAX = 100;
+    const int CONTOUR_SIZE_DUMP_MIN = 4;
+}
 
 FrameProcessor::FrameProcessor(
         JNIEnv *env,
@@ -90,8 +96,8 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
         case 2:
             // dump contours once upon entering mode 2
             if (trigger_contour_dump) {
-                DumpContours(env, obj);
                 trigger_contour_dump = false;
+                DumpContours(env, obj);
             }
             cv::drawContours(monitor, *pipeline_.GetFindContoursOutput(), -1, cv::Scalar(255, 0, 0),
                              1);
@@ -121,12 +127,25 @@ void FrameProcessor::releaseData(JNIEnv *env) {
 void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
     auto contours = *pipeline_.GetFindContoursOutput();
 
+    std::sort(contours.begin(), contours.end(),
+              [](std::vector<cv::Point> const &a, std::vector<cv::Point> const &b) {
+                  return a.size() > b.size();
+              });
+
+    LOGD("DumpContours: contour count = %lu, first size = %lu, last size = %lu", contours.size(),
+         contours.front().size(), contours.back().size());
+
     json j;
     j["name"] = "contours";
 
-    for (auto contour : contours) {
+    std::size_t dump_count = std::min(contours.size(), CONTOUR_DUMP_COUNT_MAX);
+    LOGI("dumping maximum of %lu contours, skipping contours with < %i points",
+         CONTOUR_DUMP_COUNT_MAX, CONTOUR_SIZE_DUMP_MIN);
+
+    for (int i = 0; i < dump_count; ++i) {
+        auto contour = contours[i];
         auto size = contour.size();
-        if (size < 2) continue;
+        if (size < CONTOUR_SIZE_DUMP_MIN) continue;
 
         json contour_obj;
 

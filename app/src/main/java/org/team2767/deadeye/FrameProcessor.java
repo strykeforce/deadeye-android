@@ -76,8 +76,6 @@ class FrameProcessor {
   }
 
   private void dumpContours(String json) {
-    Timber.d("CONTOURS:\n" + json);
-
     if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
       Timber.e(
           "External media is not available for dumping contours, state: %s",
