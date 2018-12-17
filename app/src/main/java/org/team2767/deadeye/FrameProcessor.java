@@ -4,9 +4,11 @@ import android.os.Environment;
 import android.util.Pair;
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
+import io.reactivex.Completable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import timber.log.Timber;
@@ -76,25 +78,26 @@ class FrameProcessor {
   }
 
   private void dumpContours(String json) {
-    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-      Timber.e(
-          "External media is not available for dumping contours, state: %s",
-          Environment.getExternalStorageState());
-      return;
-    }
 
-    File out =
-        new File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "deadeye.json");
+    String state = Environment.getExternalStorageState();
+    if (!state.equals(Environment.MEDIA_MOUNTED))
+      throw new IllegalStateException("external media: " + state);
 
-    try (Writer writer = new FileWriter(out)) {
-      writer.write(json);
-    } catch (IOException e) {
-      Timber.e(e);
-      return;
-    }
-    Timber.i("Contours written to: %s", out);
+    File downloadDir =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+    File out = new File(downloadDir, "deadeye.json");
+
+    Disposable d =
+        Completable.fromCallable(
+                () -> {
+                  try (Writer writer = new FileWriter(out)) {
+                    writer.write(json);
+                  }
+                  return null;
+                })
+            .subscribeOn(Schedulers.io())
+            .subscribe(
+                () -> Timber.i("contours written to: %s (%d)", out, json.length()), Timber::e);
   }
 
   void setMonitor(Monitor monitor) {

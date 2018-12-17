@@ -9,7 +9,7 @@ using namespace deadeye;
 using json = nlohmann::json;
 
 namespace {
-    const std::size_t CONTOUR_DUMP_COUNT_MAX = 100;
+    const std::size_t CONTOUR_DUMP_COUNT_MAX = 25;
     const int CONTOUR_SIZE_DUMP_MIN = 4;
 }
 
@@ -125,27 +125,39 @@ void FrameProcessor::releaseData(JNIEnv *env) {
 }
 
 void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
-    auto contours = *pipeline_.GetFindContoursOutput();
+    auto contours = pipeline_.GetFindContoursOutput();
+    if (contours == nullptr) {
+        LOGE("pipeline returned null for contours output");
+        return;
+    }
 
-    std::sort(contours.begin(), contours.end(),
+    if (contours->size() == 0) {
+        LOGI("pipeline returned no contours");
+        return;
+    }
+
+    std::sort(contours->begin(), contours->end(),
               [](std::vector<cv::Point> const &a, std::vector<cv::Point> const &b) {
                   return a.size() > b.size();
               });
 
-    LOGD("DumpContours: contour count = %lu, first size = %lu, last size = %lu", contours.size(),
-         contours.front().size(), contours.back().size());
+    LOGD("DumpContours: contour count = %lu, first size = %lu, last size = %lu", contours->size(),
+         contours->front().size(), contours->back().size());
 
     json j;
     j["name"] = "contours";
 
-    std::size_t dump_count = std::min(contours.size(), CONTOUR_DUMP_COUNT_MAX);
+    std::size_t max_dump_count = std::min(contours->size(), CONTOUR_DUMP_COUNT_MAX);
     LOGI("dumping maximum of %lu contours, skipping contours with < %i points",
          CONTOUR_DUMP_COUNT_MAX, CONTOUR_SIZE_DUMP_MIN);
 
-    for (int i = 0; i < dump_count; ++i) {
-        auto contour = contours[i];
+    int dump_count = 0;
+
+    for (int i = 0; i < max_dump_count; ++i) {
+        std::vector<cv::Point> contour = (*contours)[i];
         auto size = contour.size();
         if (size < CONTOUR_SIZE_DUMP_MIN) continue;
+        dump_count++;
 
         json contour_obj;
 
@@ -173,7 +185,9 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
         }
         contour_obj["points"] = point_ary;
         j["contours"].push_back(contour_obj);
+        LOGD("added contour with %i points", contour_obj["points"].size());
     }
+    LOGI("json contains %i contours", j["contours"].size());
 
     // perform callback with result
 
@@ -184,8 +198,9 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
         return;
     }
 
-    const char *json_str = j.dump(4).c_str();
+    auto json_str = j.dump();
 
-    jstring json = env->NewStringUTF(json_str);
+    jstring json = env->NewStringUTF(json_str.c_str());
     env->CallVoidMethod(obj, mid, json);
+
 }
