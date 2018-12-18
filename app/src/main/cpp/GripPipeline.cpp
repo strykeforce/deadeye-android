@@ -1,3 +1,4 @@
+
 #include "GripPipeline.h"
 
 namespace grip {
@@ -39,9 +40,26 @@ namespace grip {
                        filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices,
                        filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio,
                        this->filterContoursOutput);
-        for (int i = 0; i < 4; ++i) {
-            values[i] = i + 1.0;
+
+        if (this->filterContoursOutput.size() == 0) {
+            bounding_rect = cv::Rect(0, 0, 20, 10);
+            for (int i = 0; i < 4; ++i) {
+                values[i] = 0.0;
+            }
+            return;
         }
+
+        std::sort(this->filterContoursOutput.begin(), this->filterContoursOutput.end(),
+                  [](std::vector<cv::Point> const &a, std::vector<cv::Point> const &b) {
+                      return cv::arcLength(a, true) > cv::arcLength(b, true);
+                  });
+
+        bounding_rect = cv::boundingRect(this->filterContoursOutput.front());
+
+        values[0] = bounding_rect.x;
+        values[1] = bounding_rect.y;
+        values[2] = bounding_rect.height;
+        values[3] = bounding_rect.width;
     }
 
 /**

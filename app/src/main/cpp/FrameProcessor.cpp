@@ -24,7 +24,7 @@ FrameProcessor::FrameProcessor(
     jobject ref = env->NewDirectByteBuffer((void *) &data_, sizeof(Data));
     byte_buffer_ = env->NewGlobalRef(ref);
     source_.create(height_, width_, CV_8UC4);
-    LOGI("FrameProcessor: size %dx%d", width_, height_);
+    LOGD("FrameProcessor: frame size = %dx%d, data size = %lu", width_, height_, sizeof(Data));
 }
 
 void FrameProcessor::HueRange(int low, int high) {
@@ -92,6 +92,11 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
             trigger_contour_dump = true;
             break;
         case 1:
+            cv::drawContours(monitor, *pipeline_.GetFilterContoursOutput(), -1,
+                             cv::Scalar(255, 0, 0),
+                             1);
+            cv::rectangle(monitor, pipeline_.bounding_rect.tl(), pipeline_.bounding_rect.br(),
+                          cv::Scalar(0, 255, 0), 2);
             break;
         case 2:
             // dump contours once upon entering mode 2
@@ -187,7 +192,7 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
         j["contours"].push_back(contour_obj);
         LOGD("added contour with %i points", contour_obj["points"].size());
     }
-    LOGI("json contains %i contours", j["contours"].size());
+    LOGI("json contains %lu contours", j["contours"].size());
 
     // perform callback with result
 

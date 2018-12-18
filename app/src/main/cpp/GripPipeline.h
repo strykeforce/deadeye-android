@@ -75,6 +75,7 @@ namespace grip {
         double hsvThresholdSaturation[2];
         double hsvThresholdValue[2];
         jdouble values[4];
+        cv::Rect bounding_rect;
     };
 
 

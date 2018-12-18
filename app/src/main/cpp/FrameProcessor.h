@@ -9,7 +9,8 @@ namespace deadeye {
     class FrameProcessor {
     private:
         struct Data {
-            jint type;
+            jbyte type;
+            jbyte reserved[3];
             jint latency;
             jdouble values[4];
         };
