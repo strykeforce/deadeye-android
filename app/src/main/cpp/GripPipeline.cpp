@@ -1,3 +1,4 @@
+
 #include "GripPipeline.h"
 
 namespace grip {
@@ -8,10 +9,10 @@ namespace grip {
 /**
 * Runs an iteration of the pipeline and updates outputs.
 */
-    void GripPipeline::Process(cv::Mat &source0) {
+    void GripPipeline::Process(cv::Mat &source) {
         //Step HSV_Threshold0:
         //input
-        cv::Mat hsvThresholdInput = source0;
+        cv::Mat hsvThresholdInput = source;
         // MANUALLY UPDATED - move hsvThreshold local vars to public members
         hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue,
                      this->hsvThresholdOutput);
@@ -39,6 +40,26 @@ namespace grip {
                        filterContoursMaxHeight, filterContoursSolidity, filterContoursMaxVertices,
                        filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio,
                        this->filterContoursOutput);
+
+        if (this->filterContoursOutput.size() == 0) {
+            bounding_rect = cv::Rect(0, 0, 20, 10);
+            for (int i = 0; i < 4; ++i) {
+                values[i] = 0.0;
+            }
+            return;
+        }
+
+        std::sort(this->filterContoursOutput.begin(), this->filterContoursOutput.end(),
+                  [](std::vector<cv::Point> const &a, std::vector<cv::Point> const &b) {
+                      return cv::arcLength(a, true) > cv::arcLength(b, true);
+                  });
+
+        bounding_rect = cv::boundingRect(this->filterContoursOutput.front());
+
+        values[0] = bounding_rect.x;
+        values[1] = bounding_rect.y;
+        values[2] = bounding_rect.height;
+        values[3] = bounding_rect.width;
     }
 
 /**
@@ -181,7 +202,6 @@ namespace grip {
         cv::findContours(input, contours, hierarchy, mode, method);
     }
 
-
     /**
      * Filters through contours.
      * @param inputContours is the input vector of contours.
@@ -222,7 +242,6 @@ namespace grip {
             output.push_back(contour);
         }
     }
-
 
 } // end grip namespace
 

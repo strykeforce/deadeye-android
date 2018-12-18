@@ -23,4 +23,6 @@ public class DeadeyeApplication extends Application {
       Timber.w("Release logging not configured!");
     }
   }
+
+  // log to file example: https://android.jlelse.eu/my-timber-setup-493a8ec7a10c
 }

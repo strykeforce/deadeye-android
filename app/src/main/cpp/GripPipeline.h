@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <math.h>
+#include <jni.h>
 
 namespace grip {
 
@@ -55,7 +56,7 @@ namespace grip {
     public:
         GripPipeline();
 
-        void Process(cv::Mat &source0);
+        void Process(cv::Mat &source);
 
         cv::Mat *GetBlurOutput();
 
@@ -73,7 +74,8 @@ namespace grip {
         double hsvThresholdHue[2];
         double hsvThresholdSaturation[2];
         double hsvThresholdValue[2];
-
+        jdouble values[4];
+        cv::Rect bounding_rect;
     };
 
 

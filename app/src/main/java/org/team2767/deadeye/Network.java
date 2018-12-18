@@ -22,8 +22,8 @@ import java.nio.ByteOrder;
 import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import org.team2767.deadeye.rx.RxBus;
-import org.team2767.deadeye.rx.RxUdp;
+import org.strykeforce.thirdcoast.deadeye.rx.RxBus;
+import org.strykeforce.thirdcoast.deadeye.rx.RxUdp;
 import timber.log.Timber;
 
 @Singleton
@@ -70,8 +70,7 @@ public class Network {
   }
 
   public void start() {
-    Timber.i("Starting Network connections");
-
+    Timber.i("starting network connections");
     // periodically check for tethering network interface and call tether command if missing
     Disposable disposable =
         Observable.interval(TETHER_CHECK_SEC, SECONDS)
@@ -83,28 +82,29 @@ public class Network {
             .subscribe(() -> Timber.w("Tether check exited"), Timber::e);
     compositeDisposable.add(disposable);
 
-    // listen for messages on given port
-    Observable<DatagramPacket> packets = RxUdp.observableFrom(PORT).share();
+    // listen for UDP packets on given port
+    Observable<DatagramPacket> packetObservable = RxUdp.observableReceivingFrom(PORT).share();
 
-    // extract remote address from incoming messages
-    Observable<SocketAddress> addresses =
-        packets
+    // extract remote address from incoming UDP packets
+    Observable<SocketAddress> addressObservable =
+        packetObservable
             .map(DatagramPacket::getAddress)
             .distinctUntilChanged()
             .doOnNext(a -> Timber.i("Robot address = %s", a.getHostAddress()))
             .map(a -> new InetSocketAddress(a, PORT));
 
     // create pongs to send to remote address
-    Observable<DatagramPacket> pongs = addresses.map(a -> new DatagramPacket(PONG, SIZE, a));
+    Observable<DatagramPacket> pongObservable =
+        addressObservable.map(a -> new DatagramPacket(PONG, SIZE, a));
 
     // stream pings
-    Observable<DatagramPacket> pings = packets.filter(Network::isPing);
+    Observable<DatagramPacket> pingObservable = packetObservable.filter(Network::isPing);
 
     // send pong when ping arrives
     disposable =
-        pings
-            .withLatestFrom(pongs, (ping, pong) -> pong)
-            .subscribeWith(RxUdp.datagramPacketObserver());
+        pingObservable
+            .withLatestFrom(pongObservable, (ping, pong) -> pong)
+            .subscribeWith(RxUdp.observerSendingDatagramPacket());
     compositeDisposable.add(disposable);
 
     // monitor pings
@@ -113,7 +113,7 @@ public class Network {
 
     disposable =
         Observable.combineLatest(
-                pings.timestamp(MILLISECONDS), heartbeat, (p, h) -> h.time() - p.time())
+                pingObservable.timestamp(MILLISECONDS), heartbeat, (p, h) -> h.time() - p.time())
             .distinctUntilChanged(time -> time > PING_LIMIT)
             .map(time -> time > PING_LIMIT ? DISCONNECTED : CONNECTED)
             .startWith(DISCONNECTED)
@@ -128,14 +128,17 @@ public class Network {
         visionData
             .observeOn(Schedulers.io())
             .withLatestFrom(
-                addresses, (bytes, address) -> new DatagramPacket(bytes, bytes.length, address))
-            .subscribeWith(RxUdp.datagramPacketObserver());
+                addressObservable,
+                (bytes, address) -> new DatagramPacket(bytes, bytes.length, address))
+            .subscribeWith(RxUdp.observerSendingDatagramPacket());
     compositeDisposable.add(disposable);
+
+    Timber.i("started network connections");
   }
 
   public void stop() {
-    Timber.w("Stopping Network connections");
     compositeDisposable.clear();
+    Timber.i("stopped network connections");
   }
 
   public PublishSubject<byte[]> getVisionDataSubject() {

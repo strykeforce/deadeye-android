@@ -1,11 +1,17 @@
 #include <opencv2/imgproc.hpp>
 #include <fstream>
+#include <algorithm>
 #include "FrameProcessor.h"
 #include "json.hpp"
 #include "log.h"
 
 using namespace deadeye;
 using json = nlohmann::json;
+
+namespace {
+    const std::size_t CONTOUR_DUMP_COUNT_MAX = 25;
+    const int CONTOUR_SIZE_DUMP_MIN = 4;
+}
 
 FrameProcessor::FrameProcessor(
         JNIEnv *env,
@@ -18,7 +24,7 @@ FrameProcessor::FrameProcessor(
     jobject ref = env->NewDirectByteBuffer((void *) &data_, sizeof(Data));
     byte_buffer_ = env->NewGlobalRef(ref);
     source_.create(height_, width_, CV_8UC4);
-    LOGI("FrameProcessor: size %dx%d", width_, height_);
+    LOGD("FrameProcessor: frame size = %dx%d, data size = %lu", width_, height_, sizeof(Data));
 }
 
 void FrameProcessor::HueRange(int low, int high) {
@@ -64,7 +70,7 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
     data_.type = 0;
     data_.latency = 0;
     for (int i = 0; i < 4; ++i) {
-        data_.values[i] = counter_++;
+        data_.values[i] = pipeline_.values[i];
     }
 
     cv::Mat monitor;
@@ -80,15 +86,24 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
             LOGE("Unrecognized monitor mode = %d", monitor_mode_);
     }
 
-    static int count = 0;
+    static bool trigger_contour_dump = true;
     switch (contours_mode_) {
         case 0:
-            count = 0;
+            trigger_contour_dump = true;
             break;
         case 1:
+            cv::drawContours(monitor, *pipeline_.GetFilterContoursOutput(), -1,
+                             cv::Scalar(255, 0, 0),
+                             1);
+            cv::rectangle(monitor, pipeline_.bounding_rect.tl(), pipeline_.bounding_rect.br(),
+                          cv::Scalar(0, 255, 0), 2);
             break;
         case 2:
-            if (count++ == 0) DumpContours(env, obj);
+            // dump contours once upon entering mode 2
+            if (trigger_contour_dump) {
+                trigger_contour_dump = false;
+                DumpContours(env, obj);
+            }
             cv::drawContours(monitor, *pipeline_.GetFindContoursOutput(), -1, cv::Scalar(255, 0, 0),
                              1);
             break;
@@ -115,14 +130,39 @@ void FrameProcessor::releaseData(JNIEnv *env) {
 }
 
 void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
-    auto contours = *pipeline_.GetFindContoursOutput();
+    auto contours = pipeline_.GetFindContoursOutput();
+    if (contours == nullptr) {
+        LOGE("pipeline returned null for contours output");
+        return;
+    }
+
+    if (contours->size() == 0) {
+        LOGI("pipeline returned no contours");
+        return;
+    }
+
+    std::sort(contours->begin(), contours->end(),
+              [](std::vector<cv::Point> const &a, std::vector<cv::Point> const &b) {
+                  return a.size() > b.size();
+              });
+
+    LOGD("DumpContours: contour count = %lu, first size = %lu, last size = %lu", contours->size(),
+         contours->front().size(), contours->back().size());
 
     json j;
     j["name"] = "contours";
 
-    for (auto contour : contours) {
+    std::size_t max_dump_count = std::min(contours->size(), CONTOUR_DUMP_COUNT_MAX);
+    LOGI("dumping maximum of %lu contours, skipping contours with < %i points",
+         CONTOUR_DUMP_COUNT_MAX, CONTOUR_SIZE_DUMP_MIN);
+
+    int dump_count = 0;
+
+    for (int i = 0; i < max_dump_count; ++i) {
+        std::vector<cv::Point> contour = (*contours)[i];
         auto size = contour.size();
-        if (size < 2) continue;
+        if (size < CONTOUR_SIZE_DUMP_MIN) continue;
+        dump_count++;
 
         json contour_obj;
 
@@ -150,7 +190,9 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
         }
         contour_obj["points"] = point_ary;
         j["contours"].push_back(contour_obj);
+        LOGD("added contour with %i points", contour_obj["points"].size());
     }
+    LOGI("json contains %lu contours", j["contours"].size());
 
     // perform callback with result
 
@@ -161,8 +203,9 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
         return;
     }
 
-    const char* json_str = j.dump(4).c_str();
+    auto json_str = j.dump();
 
-    jstring json = env->NewStringUTF(json_str);
+    jstring json = env->NewStringUTF(json_str.c_str());
     env->CallVoidMethod(obj, mid, json);
+
 }
