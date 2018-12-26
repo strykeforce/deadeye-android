@@ -2,10 +2,11 @@
 
 Stryke Force Vision Application
 
-## Dependencies
+## Major Dependencies
 
-- [JSON for Modern C++](https://github.com/nlohmann/json).
-- OpenCV
+-   [JSON for Modern C++](https://github.com/nlohmann/json).
+-   [OpenCV](https://opencv.org/releases.html) installed locally and configured in `local.properties` file, for example `opencv.dir=/opt/OpenCV-android-sdk-3.4.4`.
+- [RxJava](https://github.com/ReactiveX/RxJava) and friends [RxAndroid](https://github.com/ReactiveX/RxAndroid), [RxRelay](https://github.com/JakeWharton/RxRelay) used mostly for asynchronous network traffic and connection monitoring.
 
 ## Prepare a new Nexus 5X
 
@@ -55,11 +56,40 @@ Next, holding the volume down key, and keep it held down while you press the pow
 
 > TWRP makes “nandroid” backups, which are near-complete images of your system. Instead of using them to restore individual files or apps, you use nandroid backups to restore your phone to exactly the state it was in when you backed up: the version of Android, your wallpaper, your home screen, right down to which text messages you had left unread.
 
-## Resources
+### Resources
 
--   <https://developers.google.com/android/images>
--   <https://lifehacker.com/how-to-flash-a-rom-to-your-android-phone-30885281>
--   <http://www.androidtipsandhacks.com/root/twrp-the-complete-guide-to-using-recovery-on-android/>
--   <http://www.androidtipsandhacks.com/root/fastboot-mac-linux-recovery/>
--   <https://www.xda-developers.com/how-to-install-custom-rom-android/>
--   <https://stackoverflow.com/questions/1992953/file-operations-in-android-ndk>
+-   [Factory Images for Nexus and Pixel Devices](https://developers.google.com/android/images)
+-   [How to Flash a ROM to Your Android Phone](https://lifehacker.com/how-to-flash-a-rom-to-your-android-phone-30885281)
+-   [TWRP: the complete guide to using Recovery on Android](http://www.androidtipsandhacks.com/root/twrp-the-complete-guide-to-using-recovery-on-android/)
+-   [Use Fastboot on a Mac, Windows or Linux computer to flash ROMs and recovery](http://www.androidtipsandhacks.com/root/fastboot-mac-linux-recovery/)
+-   [How To Install Custom ROM on Android](https://www.xda-developers.com/how-to-install-custom-rom-android/)
+
+## Android to roboRIO Networking Notes
+
+We've looked at a couple of methods for establishing a network connection over USB between an Android vision processor and our roboRIO. Two methods are using ADB for port-mapping and using Android USB tethering.
+
+Android tethering over USB looks to be the best solution for us as we can set it up using the native RNDIS network driver on the roboRIO. No installation of `adb` required.  This also works well for development - Windows should be good out of the box, for macOS install [HornDIS](http://joshuawise.com/horndis).
+
+Networking on the roboRIO end is handled by the `deadeye` module in our [thirdcoast](https://github.com/strykeforce/thirdcoast) libraries.
+
+### Addresses
+
+The Android end of the tethered connection is hard-coded for `192.168.42.129` (see [source code][usb_near_iface_addr]) in Android 6.0 (Marshmallow).
+
+### roboRIO Cheatsheet
+
+-   It doesn't seem to hurt anything but if you want to delete duplicate default route:
+          ip route del default via 192.168.42.129
+-   Bring up USB interface:
+          ip link set usb0 up
+
+### Resources
+
+-   [Calling Android services from ADB shell](http://ktnr74.blogspot.com/2014/09/calling-android-services-from-adb-shell.html)
+-   [HorNDIS](http://joshuawise.com/horndis)
+-   [LigerBots example](https://github.com/ligerbots/Steamworks2017Vision)
+-   [ElementalX Kernel](https://elementalx.org)
+-   [SuperSU](http://www.supersu.com)
+-   [TWRP](https://twrp.me)
+
+[usb_near_iface_addr]: https://github.com/aosp-mirror/platform_frameworks_base/blob/marshmallow-release/services/core/java/com/android/server/connectivity/Tethering.java#L110
