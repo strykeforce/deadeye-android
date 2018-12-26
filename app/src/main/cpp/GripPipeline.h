@@ -76,6 +76,7 @@ namespace grip {
         double hsvThresholdValue[2];
         jdouble values[4];
         cv::Rect bounding_rect;
+        bool has_target;
     };
 
 

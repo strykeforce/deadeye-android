@@ -41,25 +41,29 @@ namespace grip {
                        filterContoursMinVertices, filterContoursMinRatio, filterContoursMaxRatio,
                        this->filterContoursOutput);
 
-        if (this->filterContoursOutput.size() == 0) {
+        auto contoursOutput = this->findContoursOutput;
+
+        if (contoursOutput.size() == 0) {
             bounding_rect = cv::Rect(0, 0, 20, 10);
             for (int i = 0; i < 4; ++i) {
                 values[i] = 0.0;
             }
+            has_target = false;
             return;
         }
 
-        std::sort(this->filterContoursOutput.begin(), this->filterContoursOutput.end(),
+        std::sort(contoursOutput.begin(), contoursOutput.end(),
                   [](std::vector<cv::Point> const &a, std::vector<cv::Point> const &b) {
                       return cv::arcLength(a, true) > cv::arcLength(b, true);
                   });
 
-        bounding_rect = cv::boundingRect(this->filterContoursOutput.front());
+        bounding_rect = cv::boundingRect(contoursOutput.front());
 
         values[0] = bounding_rect.x;
         values[1] = bounding_rect.y;
         values[2] = bounding_rect.height;
         values[3] = bounding_rect.width;
+        has_target = true;
     }
 
 /**

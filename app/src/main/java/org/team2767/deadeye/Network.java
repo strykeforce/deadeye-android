@@ -2,6 +2,7 @@ package org.team2767.deadeye;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.strykeforce.thirdcoast.deadeye.DeadeyeMessage.Type.HEARTBEAT;
 import static org.team2767.deadeye.Network.ConnectionEvent.CONNECTED;
 import static org.team2767.deadeye.Network.ConnectionEvent.DISCONNECTED;
 
@@ -17,11 +18,10 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import org.strykeforce.thirdcoast.deadeye.DeadeyeMessage;
 import org.strykeforce.thirdcoast.deadeye.rx.RxBus;
 import org.strykeforce.thirdcoast.deadeye.rx.RxUdp;
 import timber.log.Timber;
@@ -29,20 +29,10 @@ import timber.log.Timber;
 @Singleton
 public class Network {
 
-  public static final int TYPE_FRAME_DATA = 0xDEADDA7A;
-  public static final int TYPE_PING = 0xDEADBACC;
-  public static final int TYPE_PONG = 0xDEADCCAB;
-  public static final ByteOrder BYTE_ORDER = ByteOrder.LITTLE_ENDIAN;
-
   private static final int PORT = 5555;
   private static final String INTERFACE = "rndis0";
   private static final int TETHER_CHECK_SEC = 5;
   private static final String TETHER_COMMAND = "su -c service call connectivity 30 i32 1";
-  private static final byte[] PING =
-      ByteBuffer.allocate(4).order(Network.BYTE_ORDER).putInt(TYPE_PING).array();
-  private static final byte[] PONG =
-      ByteBuffer.allocate(4).order(Network.BYTE_ORDER).putInt(TYPE_PONG).array();
-  private static final int SIZE = 4;
   private static final int PING_INTERVAL = 100;
   private static final int PING_LIMIT = 400;
   private final PublishSubject<byte[]> visionData = PublishSubject.create();
@@ -52,12 +42,6 @@ public class Network {
   @Inject
   public Network(RxBus rxBus) {
     this.rxBus = rxBus;
-  }
-
-  private static boolean isPing(DatagramPacket packet) {
-    byte[] data = packet.getData();
-    for (int i = 0; i < SIZE; i++) if (data[i] != PING[i]) return false; // LITTLE_ENDIAN
-    return true;
   }
 
   private static Iterable<NetworkInterface> networkInterfaces() {
@@ -95,10 +79,14 @@ public class Network {
 
     // create pongs to send to remote address
     Observable<DatagramPacket> pongObservable =
-        addressObservable.map(a -> new DatagramPacket(PONG, SIZE, a));
+        addressObservable.map(a -> new DatagramPacket(DeadeyeMessage.HEARTBEAT_BYTES, 1, a));
 
     // stream pings
-    Observable<DatagramPacket> pingObservable = packetObservable.filter(Network::isPing);
+    Observable<DeadeyeMessage> pingObservable =
+        packetObservable
+            .map(DatagramPacket::getData)
+            .map(DeadeyeMessage::new)
+            .filter(deadeyeMessage -> deadeyeMessage.type == HEARTBEAT);
 
     // send pong when ping arrives
     disposable =
