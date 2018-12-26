@@ -78,10 +78,8 @@ The Android end of the tethered connection is hard-coded for `192.168.42.129` (s
 
 ### roboRIO Cheatsheet
 
--   It doesn't seem to hurt anything but if you want to delete duplicate default route:
-          ip route del default via 192.168.42.129
--   Bring up USB interface:
-          ip link set usb0 up
+-   It doesn't seem to hurt anything but if you want to delete duplicate default route: `ip route del default via 192.168.42.129`
+-   Bring up USB interface: `ip link set usb0 up`
 
 ### Resources
 
