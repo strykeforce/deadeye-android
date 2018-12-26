@@ -11,6 +11,10 @@ using json = nlohmann::json;
 namespace {
     const std::size_t CONTOUR_DUMP_COUNT_MAX = 25;
     const int CONTOUR_SIZE_DUMP_MIN = 4;
+    const jbyte ERROR_BYTE = 0;
+    const jbyte HEARTBEAT_BYTE = 1;
+    const jbyte DATA_BYTE = 2;
+    const jbyte NODATA_BYTE = 3;
 }
 
 FrameProcessor::FrameProcessor(
@@ -67,7 +71,7 @@ void FrameProcessor::process(JNIEnv *env, jobject obj) {
 
     // Put results in data_ struct for return. Java calling method FrameProcessor getData
     // will overwrite the latency field with its own computed value.
-    data_.type = 0;
+    data_.type = pipeline_.has_target ? DATA_BYTE : NODATA_BYTE;
     data_.latency = 0;
     for (int i = 0; i < 4; ++i) {
         data_.values[i] = pipeline_.values[i];
@@ -199,7 +203,7 @@ void FrameProcessor::DumpContours(JNIEnv *env, jobject obj) {
     jclass cls = env->GetObjectClass(obj);
     jmethodID mid = env->GetMethodID(cls, "dumpContours", "(Ljava/lang/String;)V");
     if (mid == nullptr) {
-        LOGE("dumpContours method not found");
+        LOGE("WTF dumpContours method not found");
         return;
     }
 

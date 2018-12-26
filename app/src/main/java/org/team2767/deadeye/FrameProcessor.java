@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
+import org.strykeforce.thirdcoast.deadeye.DeadeyeMessage;
 import timber.log.Timber;
 
 @AutoFactory
@@ -28,7 +29,7 @@ class FrameProcessor {
     this.settings = settings;
     objPtr = init(outputTex, width, height);
     data = data(objPtr);
-    data.order(Network.BYTE_ORDER); // Android is always LITTLE_ENDIAN
+    data.order(DeadeyeMessage.BYTE_ORDER); // Android is always LITTLE_ENDIAN
     Timber.d("byte order is %s", data.order());
 
     // initialized saved HSV threshold settings
@@ -42,7 +43,7 @@ class FrameProcessor {
 
   public static void dumpFrameData(byte[] bytes) {
     ByteBuffer buffer = ByteBuffer.wrap(bytes);
-    buffer.order(Network.BYTE_ORDER);
+    buffer.order(DeadeyeMessage.BYTE_ORDER);
     String type = String.format("0x%08X", buffer.getInt());
     String latency = Integer.toString(buffer.getInt());
     double[] data = new double[4];
@@ -54,9 +55,7 @@ class FrameProcessor {
   // After calling process(), the data ByteBuffer contains results.
   byte[] getBytes(int latency) {
     data.rewind();
-    data.putInt(Network.TYPE_FRAME_DATA);
-    data.putInt(latency);
-    data.rewind();
+    data.putInt(4, latency); // skip over type
     byte[] dest = new byte[data.capacity()];
     data.get(dest);
     return dest;
