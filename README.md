@@ -1,4 +1,6 @@
-# deadeye
+# deadeye-android
+
+This project is no longer maintained. It has been replaced by [Deadeye](https://github.com/strykeforce/deadeye).
 
 Stryke Force Vision Application
 
